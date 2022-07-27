@@ -369,17 +369,36 @@ FROM employees;
 
 ```
 
+----
+
+##### 分组函数
+
+> 功能：用作统计使用，又称为聚合函数或统计函数或组函数
+
+```sql
+1. # sum：求和, avg：求平均值, max：最大值, min：最小值, count：计算个数；以上函数都会略null值
+select sum(salary) from employees; 
+select avg(salary) from employees; # sum 和 avg 会忽略null值，可以用null+1==null或者用commission_pct 来验证
+select max(salary)...
+select min(salary)... # max 和 min 忽略null值
+select count(salary)... # 统计非null值个数
+
+# 可以跟其他函数复合使用
+select round(max(salary), 2)... # 保留两位小数
+
+# 参数支持的类型
+select sum(last_name), AVG(last_name) from employees # 参数为字符，输出异常，不支持
+select sum(hirdate), AVG(hiredate) from employees # 参数为日期，输出异常，不支持
+
+select max(last_name), min(last_name) ... # 正常比较，支持
+select max(hiredate), min(hiredate) ... # 正常比较，支持
+
+2. # 可以和distinct去重搭配
+select sum(distinct salary), sum(salary) from employees; # 输出397900，691400
+select count(distinct salary), count(salary) from employees; # 输出57， 107
 
 
-
-
-
-
-
-
-分组函数2
-
-
+```
 
 
 

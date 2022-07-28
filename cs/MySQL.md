@@ -95,68 +95,65 @@ where
 - **简单条件运算符**：>, <,  = , !=,  <>,  >=,  <=
 - **逻辑运算符**：&& , ||,  ！,  and, or, not  前三个和后三个对应
 
-```sql
+```sql 
 select last_name from employees where salary>=10000 and salary<=20000; // 其实就是salary>=10000 && salary<=20000
 select * from employees where not(salary<=10000 and salary>=20000)  // 其实就是！(s<=10000 && s>=20000)
 
 # 选择工资不在8000到17000的员工姓名和工资，按工资排序
 # 这里有个要注意的点：
 #    不可以直接写salary<7000 and salary>17000 是查询不出来的，只能用not()， 或者用not between
-SELECT last_name, salary FROM employees WHERE not(salary>=8000 and salary<=17000) ORDER BY salary DESC;
+SELECT last_name, salary FROM employees WHERE not(salary>=8000 and salary<=17000) ORDER BY salary DESC**模糊查询**“：like,  between and , in,  is null, is not null
 ```
 
-- **模糊查询**“：like,  between and , in,  is null, is not null
+- **like**
 
-  - **like**
+```sql
+select * from employees where last_name like '%a%'; # 员工名中包含字符a的员工信息
+# 其中%代表通配符，替代0个或多个字符，比如
+select * from employees where last_name like 'a%'; # 员工名中以字符a开头的员工信息
 
-  ```sql
-  select * from employees where last_name like '%a%'; # 员工名中包含字符a的员工信息
-  # 其中%代表通配符，替代0个或多个字符，比如
-  select * from employees where last_name like 'a%'; # 员工名中以字符a开头的员工信息
-  
-  # _通配符，表示替代任意一个字符
-  select * from employees where last_name like '__e_a%'; -- 员工名中第三个字符为e，第五个字符为a的员工信息
-  
-  # 使用\转义 \_表示字符_
-  select * from employees where last_name like '_\_%'; -- 员工名中第二个字符为_的员工信息
-  # 可以使用别的符号作为转义符，比如
-  select * from employees where last_name like '_$_%' escape '$'; # 使用escape来表示$为转义符
-  
-  ```
+# _通配符，表示替代任意一个字符
+select * from employees where last_name like '__e_a%'; -- 员工名中第三个字符为e，第五个字符为a的员工信息
 
-  
+# 使用\转义 \_表示字符_
+select * from employees where last_name like '_\_%'; -- 员工名中第二个字符为_的员工信息
+# 可以使用别的符号作为转义符，比如
+select * from employees where last_name like '_$_%' escape '$'; # 使用escape来表示$为转义符
 
-  - **between and**：在...之间
+```
 
-  ```sql
-  # 等价于 <= and >=, 因此between and顺序不能颠倒
-  select * from employees where employee_id between 100 and 200 # 查询员工编号100到200之间的员工编号。是闭区间
-  ```
 
-  - **in**
 
-  ```sql
-  # 查看员工工种编号为a, b, c中的一个员工名和员工编号
-  select last_name, job_id from employees where job_id = 'a' or job_id = 'b' or job_id = 'c';
-  select last_name, job_id from employees where job_id in('a', 'b', 'c');
-  ```
+- **between and**：在...之间
 
-  - **is null**：=不能用于判断空值，因此如果用=null查询不出来数据
+```sql
+# 等价于 <= and >=, 因此between and顺序不能颠倒
+select * from employees where employee_id between 100 and 200 # 查询员工编号100到200之间的员工编号。是闭区间
+```
 
-  ```sql
-  # 查询没有奖金率的员工名和奖金率
-  select last_name, commission_pct from employees where commisson_pct is null;
-  ```
+- **in**
 
-  - **is not null**：<>也就是!= 不能用于判断不为空值 	
-  - **<=>**：安全等于，既可以判断数值，也可以判断null
-  
-  ```sql
-  select last_name, salary from employees where salary <=> 12000; # 查询salary等于12000的数据
-  
-  select last_name, commission_pct from employees where commission_pct <=> null # 判断commission_pct为null的数据
-  ```
-  
+```sql
+# 查看员工工种编号为a, b, c中的一个员工名和员工编号
+select last_name, job_id from employees where job_id = 'a' or job_id = 'b' or job_id = 'c';
+select last_name, job_id from employees where job_id in('a', 'b', 'c');
+```
+
+- **is null**：=不能用于判断空值，因此如果用=null查询不出来数据
+
+```sql
+# 查询没有奖金率的员工名和奖金率
+select last_name, commission_pct from employees where commisson_pct is null;
+```
+
+- **is not null**：<>也就是!= 不能用于判断不为空值 	
+- **<=>**：安全等于，既可以判断数值，也可以判断null
+
+```sql
+select last_name, salary from employees where salary <=> 12000; # 查询salary等于12000的数据
+
+select last_name, commission_pct from employees where commission_pct <=> null # 判断commission_pct为null的数据
+```
 
 -----
 
@@ -281,6 +278,10 @@ select year(hirdate) from employees
 select month(now())) #输出7月
 select monthname(now()) # 
 
+3。 # datediff 统计两日期相差的天数
+select datediff(date_1, date_2)
+select datediff(now(), '1999-9-10') # 出生天数
+
 ```
 
 | 序号 | 格式符 | 功能                  |
@@ -396,8 +397,71 @@ select max(hiredate), min(hiredate) ... # 正常比较，支持
 2. # 可以和distinct去重搭配
 select sum(distinct salary), sum(salary) from employees; # 输出397900，691400
 select count(distinct salary), count(salary) from employees; # 输出57， 107
+ 
+3. # count可以用来统计行数
+select count(*) from employees. # 输出107。只要某一行有一个值不为null，那么都+1
+select count(1) from employees # 输出107。添加字段1，本质跟count(*)差不多
+  /*
+  	效率对比
+  	MYSAM：count(*) 效率高
+  	INNODB：count(*) 和 count(1) 差不多
+  */
+ 4. # 和分组函数一同查询的字段要求是group by后的字段
+ select avg(salary), employee_id from employees; # 错误，输出的表格有误，就是因为employee_id有很多行
 
 
+5. # group by 大体意思上就是将相同名字的列分成一组
+/*
+语法：
+	select 分组函数, 列（要求出现在group by后面）
+	from 表
+	[where 筛选条件]
+	group by 分组列表
+	[order by 字句]
+注意：
+	查询列表必须特殊，要求是分醉函数和group by后出现的字段
+*/
+
+# 查询每个工种的最高工资
+SELECT max(salary), job_id FROM employees GROUP BY job_id 
+
+5.1 简单分组# 查询邮箱中包含a字符的，每个部门的平均工资
+SELECT avg(salary) as 平均工资, department_id
+FROM employees
+where email like '%a%' 
+GROUP BY department_id
+
+# 查询有奖金的的每个领导手下员工的最高工资
+SELECT max(salary) as 最高工资, manager_id
+FROM employees
+where commission_pct is not NULL
+GROUP BY manager_id
+
+5.2 复杂分组 # 查询哪个部门的员工个数>2
+# 错误演示
+select count(*), department_id
+from employees
+where count(*)   # 这里出错，因为count(*)不属于employees表里的，是属于是一个新的字段
+group by department_id
+# 正确演示
+select count(*), department_id
+from employees 
+group by department_id
+having count(*)   # 使用having关键字
+
+# 查询每个工种有奖金的员工的最高工资>12000的工种编号和最高工资
+SELECT max(salary), job_id
+FROM employees
+where commission_pct is not NULL
+GROUP BY job_id
+having max(salary)>12000
+
+# 查询领导编号>102的每个领导手下的最低工资>5000的领导编号是哪个，以及其最低工资
+SELECT max(salary), job_id
+FROM employees
+where commission_pct is not NULL
+GROUP BY job_id
+having max(salary)>12000
 ```
 
 

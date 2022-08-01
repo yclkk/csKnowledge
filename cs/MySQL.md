@@ -456,12 +456,36 @@ where commission_pct is not NULL
 GROUP BY job_id
 having max(salary)>12000
 
-# 查询领导编号>102的每个领导手下的最低工资>5000的领导编号是哪个，以及其最低工资
-SELECT max(salary), job_id
+  # 查询领导编号>102的每个领导手下的最低工资>5000的领导编号是哪个，以及其最低工资
+SELECT MIN(salary), manager_id
 FROM employees
-where commission_pct is not NULL
-GROUP BY job_id
-having max(salary)>12000
+WHERE manager_id>102
+GROUP BY manager_id
+having MIN(salary)>5000
+
+5.3 # 按多个字段分组
+# 查询每个部门每个工种的员工的平均工资
+select avg(salary) department_id, job_id
+from employees
+group by department_id, job_id
+```
+
+```sql
+6. # 连接查询：又称多表查询，当查询的字段来自于多个表时，就会使用到
+# 错误样例
+select name, boyName from beauty, boys; # 会发现beauty中每一条数据都会去跟boys表的全部数据去匹配
+/*
+	这就是笛卡尔集的错误情况
+	select count(*) from beauty  假设输出12
+	select count(*) from boys		 假设输出4
+	最终结果就是12*4=48行
+	原因就是在于没有添加有效的连接条件 
+*/
+# 正确样例
+SELECT name, boyName 
+FROM beauty, boys
+where beauty.boyfriend_id = boys.id  # 使用表明去界定
+
 ```
 
 

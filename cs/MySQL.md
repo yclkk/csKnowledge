@@ -182,6 +182,70 @@ SELECT * FROM employees ORDER BY salary asc, employee_id DESC   # 工资有相�
 
 #### DML(Data Manipulate Language)
 
+##### 连接查询
+
+> 又称多表查询，当查询的字段来自于多个表时，就会使用到
+
+```sql
+# 错误样例
+select name, boyName from beauty, boys; # 会发现beauty中每一条数据都会去跟boys表的全部数据去匹配
+/*
+	这就是笛卡尔集的错误情况
+	select count(*) from beauty  假设输出12
+	select count(*) from boys		 假设输出4
+	最终结果就是12*4=48行
+	原因就是在于没有添加有效的连接条件 
+*/
+# 正确样例
+SELECT name, boyName 
+FROM beauty, boys
+where beauty.boyfriend_id = boys.id  # 使用表明去界定
+
+# 查询员工名、工种号、工种名
+SELECT last_name, e.job_id, job_title  # job_id有歧义，需要加限定名
+FROM employees as e, jobs as j        # 也可以为表起别名，但是限定名也需要用别名
+where e.job_id = j.job_id
+
+# 加筛选
+# 查询有奖金的员工名、部门名
+SELECT last_name, department_name
+from employees as e, departments as d
+where e.commission_pct is not null and e.department_id = d.department_id
+# 查询城市名中第二个字符为o的部门名和城市名
+SELECT city, department_name
+FROM locations as l, departments as d
+WHERE city like '_o%' and l.location_id=d.location_id
+
+# 加分组
+# 查询每个城市的部门个数
+SELECT count(*), city
+FROM departments as d, locations as l
+where d.location_id = l.location_id
+GROUP BY city
+# 查询有奖金的每个部门的部门名和部门领导编号和该部门的最低工资
+SELECT min(salary), d.manager_id, department_name
+FROM employees as e, departments as d
+where e.department_id = d.department_id
+and commission_pct is not null
+GROUP BY department_name, d.manager_id
+```
+
+**分类**
+
+- 按年代分
+  - `sql192`标注：仅仅支持内连接
+  - `sql199`标准：支持内连接+外连接（**左外、右外）**+交叉连接
+- 按功能分
+  - 内连接
+    - 等值连接
+    - 非等值连接
+    - 自连接
+  - 外连接
+    - 左外连接
+    - 右外连接
+    - 全外连接
+  - 交叉连接
+
 #### DDL(Data Definite Language)
 
 -------
@@ -471,20 +535,6 @@ group by department_id, job_id
 ```
 
 ```sql
-6. # 连接查询：又称多表查询，当查询的字段来自于多个表时，就会使用到
-# 错误样例
-select name, boyName from beauty, boys; # 会发现beauty中每一条数据都会去跟boys表的全部数据去匹配
-/*
-	这就是笛卡尔集的错误情况
-	select count(*) from beauty  假设输出12
-	select count(*) from boys		 假设输出4
-	最终结果就是12*4=48行
-	原因就是在于没有添加有效的连接条件 
-*/
-# 正确样例
-SELECT name, boyName 
-FROM beauty, boys
-where beauty.boyfriend_id = boys.id  # 使用表明去界定
 
 ```
 

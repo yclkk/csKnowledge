@@ -205,8 +205,8 @@ where beauty.boyfriend_id = boys.id  # 使用表明去界定
 SELECT last_name, e.job_id, job_title  # job_id有歧义，需要加限定名
 FROM employees as e, jobs as j        # 也可以为表起别名，但是限定名也需要用别名
 where e.job_id = j.job_id
-
-# 加筛选
+一、等值连接
+1. # 加筛选
 # 查询有奖金的员工名、部门名
 SELECT last_name, department_name
 from employees as e, departments as d
@@ -216,7 +216,7 @@ SELECT city, department_name
 FROM locations as l, departments as d
 WHERE city like '_o%' and l.location_id=d.location_id
 
-# 加分组
+2. # 加分组
 # 查询每个城市的部门个数
 SELECT count(*), city
 FROM departments as d, locations as l
@@ -228,7 +228,40 @@ FROM employees as e, departments as d
 where e.department_id = d.department_id
 and commission_pct is not null
 GROUP BY department_name, d.manager_id
+
+3. # 排序
+# 查询每个工种的工种名和员工的个数，并且按员工个数降序
+SELECT count(*), job_title
+FROM employees as e, jobs as j
+where e.job_id=j.job_id
+GROUP BY job_title
+ORDER BY count(*) desc
+
+4. # 三表连接
+# 查询员工名、部门名、和所在的城市
+SELECT last_name, department_name, city
+FROM employees as e, departments as d, locations as j
+where e.department_id=d.department_id and d.location_id=j.location_id
 ```
+
+```sql
+二、非等值连接
+# 查询员工的工资和工资级别
+SELECT salary, grade_level
+FROM employees as e, job_grades as j
+where e.salary<=j.highest_sal and e.salary>=j.lowest_sal
+where e.salary BETWEEN lowest_sal and highest_sal    # 二选一
+```
+
+```sql
+三、自连接：顾名思义就是使用了同一张表多次
+# 查询员工名和上级的名称
+SELECT member.last_name, leader.last_name
+FROM employees as member, employees as leader   # 虽然是同一张表，但是作用不同，需要分开
+WHERE member.manager_id=leader.employee_id    
+```
+
+
 
 **分类**
 

@@ -24,7 +24,7 @@ show variable like '%char%' # 展示字符集 其中show variable表示的是展
 
 **在进行数据库语言操作时，尽量要先进入库**
 
-#### DQL(Data Query Language)
+### DQL(Data Query Language)
 
 ##### 查询语句
 
@@ -178,13 +178,27 @@ SELECT LENGTH(last_name) as 姓名长度, last_name, salary FROM employees ORDER
 SELECT * FROM employees ORDER BY salary asc, employee_id DESC   # 工资有相同的情况
 ```
 
-
-
-#### DML(Data Manipulate Language)
+----
 
 ##### 连接查询
 
 > 又称多表查询，当查询的字段来自于多个表时，就会使用到
+
+**分类**
+
+- 按年代分
+  - `sql92`标注：仅仅支持内连接
+  - `sql99`标准：支持内连接+外连接（**左外、右外）**+交叉连接
+- 按功能分
+  - 内连接
+    - 等值连接
+    - 非等值连接
+    - 自连接
+  - 外连接
+    - 左外连接
+    - 右外连接
+    - 全外连接
+  - 交叉连接
 
 ```sql
 # 错误样例
@@ -205,7 +219,13 @@ where beauty.boyfriend_id = boys.id  # 使用表明去界定
 SELECT last_name, e.job_id, job_title  # job_id有歧义，需要加限定名
 FROM employees as e, jobs as j        # 也可以为表起别名，但是限定名也需要用别名
 where e.job_id = j.job_id
+```
+
+----
+
 一、等值连接
+
+```sql
 1. # 加筛选
 # 查询有奖金的员工名、部门名
 SELECT last_name, department_name
@@ -244,8 +264,11 @@ FROM employees as e, departments as d, locations as j
 where e.department_id=d.department_id and d.location_id=j.location_id
 ```
 
-```sql
+-----
+
 二、非等值连接
+
+```sql
 # 查询员工的工资和工资级别
 SELECT salary, grade_level
 FROM employees as e, job_grades as j
@@ -253,37 +276,119 @@ where e.salary<=j.highest_sal and e.salary>=j.lowest_sal
 where e.salary BETWEEN lowest_sal and highest_sal    # 二选一
 ```
 
-```sql
+----
+
 三、自连接：顾名思义就是使用了同一张表多次
+
+```sql
 # 查询员工名和上级的名称
 SELECT member.last_name, leader.last_name
 FROM employees as member, employees as leader   # 虽然是同一张表，但是作用不同，需要分开
-WHERE member.manager_id=leader.employee_id    
+WHERE member.manager_id=leader.employee_id
 ```
 
+----
+
+**sql99语法**
+
+**语法**
+
+```sql
+select 查询列表
+from 表1 别名 [连接类型]
+join 表2 别名
+on 连接条件
+[where 筛选条件]
+...
+```
+
+**连接类型**
+
+- 内连接：`inner`
+- 外连接
+  - 左外：`left`  [outer 可省略]
+  - 右外：`right `  [outer 可省略]
+  - 全外：`full`  [outer 可省略]
+- 交叉连接：`cross`
+
+**内连接**
+
+1. 等值连接
+
+```sql
+/*
+	select 查询列表
+	from 表1
+	inner join 表2
+	on 连接条件
+*/
+
+# 查询员工名、部门名
+SELECT last_name, department_name
+from employees as e
+INNER join departments as d
+on e.department_id = d.department_id
+
+# 查询员工名、部门名、工种名，并按照部门名降序
+SELECT last_name, department_name, job_title
+FROM employees as e
+inner join departments as d
+INNER join jobs as j
+on e.department_id = d.department_id
+and e.job_id = j.job_id 
+order by department_name desc
+或者
+SELECT last_name, department_name, job_title
+FROM employees as e
+inner join departments as d on e.department_id = d.department_id
+INNER join jobs as j on e.job_id = j.job_id     		# 用这种方式符合标准，inner join...on...，连接是有顺序的，前面连接之后会形成一张
+order by department_name desc 
+```
+
+------
+
+2. 非等值连接
+
+```sql
+# 查询员工的工资级别
+SELECT last_name, salary,grade_level
+FROM job_grades as j
+inner join employees as e 
+on e.salary BETWEEN j.lowest_sal and j.highest_sal
+
+# 查询工资级别的个数大于30的个数，并且按照工资级别降序
+SELECT grade_level, count(*)
+FROM job_grades as j
+inner join employees as e 
+on e.salary BETWEEN j.lowest_sal and j.highest_sal
+GROUP BY grade_level 
+HAVING count(*) > 30
+ORDER BY count(*) desc
+
+```
+
+----
+
+3. 自连接
+
+```sql
+# 跟sql92一样的问题。查询员工名和上级的名称
+SELECT e.last_name as 员工, l.last_name as 领导
+FROM employees as e 
+[inner] join employees as l 
+on e.manager_id = l.employee_id
+
+```
+
+----
+
+**外连接**
 
 
-**分类**
-
-- 按年代分
-  - `sql192`标注：仅仅支持内连接
-  - `sql199`标准：支持内连接+外连接（**左外、右外）**+交叉连接
-- 按功能分
-  - 内连接
-    - 等值连接
-    - 非等值连接
-    - 自连接
-  - 外连接
-    - 左外连接
-    - 右外连接
-    - 全外连接
-  - 交叉连接
-
-#### DDL(Data Definite Language)
 
 -------
 
-#### 常见函数
+##### 常见函数
 
 基本格式：`select 函数名(实参列表) 【from 表】` 其中如果实参列表有就from表
 
@@ -571,9 +676,9 @@ group by department_id, job_id
 
 ```
 
+### DML(Data Manipulate Language)
 
-
-
+### DDL(Data Definite Language)
 
 ### 三范式
 
@@ -635,3 +740,4 @@ group by department_id, job_id
 
 
 
+ 

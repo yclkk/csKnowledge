@@ -1764,9 +1764,96 @@ echo $PATH
 8. `w`：列出当前登陆的用户
 9. `ping www.baidu.com`：检查是否有网络
 
+---
 
+#### 文件权限
 
+1. `chmod`：修改文件权限
 
+   - `chmod +x xxx`：给`xxx`添加可执行权限
+
+   - `chmod -x xxx`：给`xxx`去掉可执行权限
+
+     `chomd 777 xxx`：给`xxx`的权限改成777
+
+   - `chomd 777 xxx -R`：递归修改整个文件夹的权限
+
+----
+
+#### 文件检索
+
+1. `find /path/to/directory/ -name '*.py'`：搜索某个文件路径下所有`*.py`文件
+2. `grep xxx`：从`stdin`中读若干行数据，如果某行包含`xxx`，则输出该行；否则忽略该行
+3. `wc`：统计行数、单词数、字节数
+   - 既可以从`stdin`中 直接读入内容，也可以在命令行参数中传入文件名列表
+   - `wc` -l`：统计行数
+   - `wc -w`：统计单词数
+   - `wc -c`：统计字节数
+4. `tree`：展示当前目录的文件结构
+   - `tree /path/to/directory/`：展示某个目录的文件结构
+   - `tree -a`：展示隐藏文件
+5. `ag xxx`：搜索当前目录下的所有文件，检索xxx字符串
+6. `cut`：分割一行内容
+   - 从`stdin`中读入多行数据
+   - `echo $PATH | cut -d ':' -f 3, 5`：输出`PATH`用:分割后第3、5列数据
+   - `echo $PATH | cut -d ':' -f 3-5`：输出`PATH`用:分割后的第3到5列数据
+   - `echo $PATH | cut -c 3, 5`：输出PATH的第3、5个字符
+   - `echo $PATH | cut -c 3-5`：输出PATH的第3-5个字符
+7. `sort`：将每行内容按照字典序排序
+   - 可以从`stdin`中读取多行数据
+   - 可以从命令行参数中读取文件名列表
+8. `xargs`：将`stdin`中的数据用空格或者回车分割成命令行参数
+   - `find . -name '*.py' | xargs cat | wc -l`：统计当前目录下所有python文件的总行数
+
+---
+
+#### 查看文件内容
+
+1. `more`：浏览文件内容
+   - 回车：下一行
+   - 空格：下一页
+   - `b`：上一页
+   - `q`：退出
+2. `less`：与`more`类似，功能更全
+   - 回车：下一行
+   - `y`：上一行
+   - `Page Down`：下一页
+   - `Page Up`：上一页
+   - `q`：退出
+3. `head -3 xxx`：展示`xxx`的前三行内容
+   - 支持从`stdin`中读入内容
+4. `tail -3 xxx`：展示`xxx`的尾三行内容
+   - 支持从`stdin`读入内容
+
+----
+
+#### 用户相关
+
+1. `history`：展示当前用户的历史操作。内容存放在`~/.bash_history`中
+
+----
+
+#### 工具
+
+1. `md5sum`：计算`md5`哈希值
+   - 可以从`stdin`读取内容
+   - 也可以自啊命令行参数中传入文件名列表
+2. `time command`：统计`command`命令的执行时间
+3. `Ipython3`：交互式`python3`环境。可以当作计算器，或者批量管理文件
+   - `! echo "Hello World! "`：`!`表示执行`shell`脚本
+4. `watch -n 0.1 command`：每`0.1s`执行一次`command`命令
+5. `tar`：压缩文件
+   - `tar -zcvf xxx.tar.gz /path/to/file/*`：压缩
+   - `tar -zxvf xxx.tar.gz`：解压缩
+6. `diff xxx yyy`：查看文件`xxx`与`yyy`的不同点
+
+---
+
+#### 安装软件
+
+1. `sudo command`：以`root`的身份执行`command`命令
+2. `apt-get install xxx`：安装软键
+3. `pip install xxx --user --upgrade`：安装`python`包
 
 
 

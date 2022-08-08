@@ -1769,13 +1769,9 @@ echo $PATH
 #### 文件权限
 
 1. `chmod`：修改文件权限
-
    - `chmod +x xxx`：给`xxx`添加可执行权限
-
    - `chmod -x xxx`：给`xxx`去掉可执行权限
-
-     `chomd 777 xxx`：给`xxx`的权限改成777
-
+   - `chomd 777 xxx`：给`xxx`的权限改成777
    - `chomd 777 xxx -R`：递归修改整个文件夹的权限
 
 ----
@@ -1855,6 +1851,141 @@ echo $PATH
 2. `apt-get install xxx`：安装软键
 3. `pip install xxx --user --upgrade`：安装`python`包
 
+----
+
+## 第六章 租云服务器以及配置docker
+
+### 6.1 概述
+
+云平台的作用：
+
+- 存放docker容器，让计算跑在云端
+- 获取公网ip，让每个人可以访问到我们的服务
+
+-----
+
+### 6.2 租云服务器
+
+**创建工作用户xxx并赋予sudo权限**
+
+1. 从终端登录到云服务器
+
+   ```bash
+   ssh root@xxx.xxx.xxx.xxx -p Port # xxx.xxx.xxx.xxx 为公网ip
+   ```
+
+2. 创建`lingyi`用户
+
+   ```bash
+   adduser lingyi # 创建用户lingyi
+   usermod -aG sudo lingyi # 给用户lingyi分配sudo权限
+   ```
+
+----
+
+**配置免密登录**
+
+退到终端，配置`lingyi`用户的别名和免密登录，参考[第三章 SSH 登录](# 第三章 SSH)
+
+----
+
+**配置新服务器的工作环境**
+
+将终端的配置环境传到服务器上
+
+```bash
+scp .bashrc .vimrc .tmux.conf server_name:  # server_name需要换成自己配置的别名
+```
+
+---
+
+**安装tmux和docker**
+
+```bash
+sudo apt-get update
+sudo apt-get install tmux
+```
+
+在`tmux`中根据[docker官方教程来安装](https://docs.docker.com/engine/install/ubuntu/)docker
+
+----
+
+### 6.3 docker教程
+
+**将当前用户添加到docker用户组**
+
+为了避免每次使用`docker`都要加上`sudo`权限，可以将用户加入安装中自动创建的`docker`用户组
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+执行完之后需要重新登录才生效
+
+----
+
+**镜像（images）**
+
+1. `docker pull ubuntu:20.04`：拉取一个镜像
+2. `docker images`：列出本地所有镜像
+3. `docker image rm ubuntu:20.04`或者`docker rmi ubutu:20.04`：删除镜像`ubuntu:20.04`
+4. `docker [container] commit CONTAINER IMAGE_NAME:TAG`：创建某个`container`镜像
+5. `docker save -o ubuntu:20.04.tar ubuntu:20.04`：将镜像`ubuntu:20.04`导出到本地文件`ubuntu:20.04.tar`中
+6. `docker load -i ubuntu:20.04.tar`：将镜像`ubuntu:20.04`从本地文件`ubuntu:20.04.tar`中加载出来
+
+**容器（container）**
+
+1. `docker [container] create -it ubuntu:20.04`：利用镜像`ubuntu:20.04`创建一个容器
+2. `docker ps -a`：查看本地所有容器
+3. `docker [container] start CONTAINER`：启动容器
+4. `docker [container] stop CONTAINER`：停止容器
+5. `docker [container] restart CONTAINER`：重启容器
+6. `docker [container] run -itd ubuntu:20.04`：创建并启动一个容器
+7. `docker [container] attach CONTAINER`：进入一个容器
+   - 先按`Ctrl + p`，再按`Ctrl + q`可以挂起容器
+8. `docker [container] exec CONTAINER COMMAND`：在容器中执行命令
+9. `docker [container] rm CONTAINER`：删除容器
+10. `docker container prune`：删除所有容器
+11. `docker export -o xxx.tar CONTAINER`：将容器`CONTAINER`导出到本地文件`xxx.tar`中
+12. `docker import xxx.tar image_name:tag`：将本地文件`xxx.tar`导入成镜像，并将镜像命名为`image_name:tag`
+13. `docker export/import`和`docker save/load`的区别：
+    - `export/impor`会丢弃历史记录和元数据信息，仅保存容器当前的快照状态
+    - `save/load`会保存完整记录，体积更大
+14. `docker top CONTAINER`：查看某个容器内的进程状态
+15. `docker stats`：查看所有容器的统计信息，包括CPU、内存、存储、网络信息等
+16. `docker cp xxx CONTAINER:xxx `或 `docker cp CONTAINER:xxx xxx`：在本地和容器之间复制文件
+17. `docker rename CONTAINER1 CONTAINER2`：重命名容器
+18. `docker update CONTAINER --memory 500MB`：修改容器限制
+
+---
+
+**实战**
+
+```bash
+scp /var/lib/acwing/docker/images/docker_lesson_1_0.tar server_name:  # 将镜像上传到自己租的云端服务器
+ssh server_name  # 登录自己的云端服务器
+
+docker load -i docker_lesson_1_0.tar # 将镜像加载到本地
+docker run -p 20000:22 --name my_docker_server -itd docker_lesson:1.0 # 创建并运行docker_lesson:1.0镜像
+
+docker attach my_docker_server # 进入创建的docker容器
+passwd # 设置root密码
+```
+
+在云平台的控制台开放20000端口
+
+通过`ssh`登陆`docker`容器
+
+```bash
+ssh root@xxx.xxx.xxx.xxx -p 20000 
+```
+
+创建工作账户`lingyi`
+
+最后设置免密登陆，参考[第三章 SSH登陆](# 第三章 SSH)
+
+
+
 
 
 
@@ -1875,4 +2006,7 @@ bash：创建一个子进程
 
 如果让cat作为管道接收的话，会直接输出标准输入的内容。
 
-###### 罗素，西方哲学史≠
+如果`apt-get`下载速度慢，参考[清华大学开源软件镜像站](https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/)修改软件源
+
+###### 罗素，西方哲学史
+

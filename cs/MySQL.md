@@ -194,7 +194,7 @@ SELECT * FROM employees ORDER BY salary asc, employee_id DESC   # 工资有相�
     - 等值连接
     - 非等值连接
     - 自连接
-  - 外连接
+  - 外连接 
     - 左外连接
     - 右外连接
     - 全外连接
@@ -383,6 +383,75 @@ on e.manager_id = l.employee_id
 ----
 
 **外连接**
+
+主要用于查询一个表中有，另一个表没有的记录。
+
+1. 外连接查询的结果为主表的所有记录
+   - 如果从表中有和它匹配的，则显示相应的值
+   - 如果从表没有和它匹配的，则显示`null`
+   - 外连接查询结果=内连接查询结果+主表中有而从表没有的记录
+2. 左外连接中，`left join`左边的是主表；右外连接中，`right join`右边的是主表
+3. 左外和右外本质没有区别
+3. 全外连接=内连接结果+表1有但是表2没有+表2有但是表1没有，其实就相当于左外和右外的组合
+
+```sql
+# 查询男朋友不在男神表的女神名
+SELECT b.name
+FROM beauty as b 
+left outer join boys as bo
+ON b.boyfriend_id = bo.id
+where bo.id is NULL     # 这里最好是用id，因为id为主键不能为null
+或者
+SELECT b.name
+FROM beauty as b 
+left outer join boys as 	bo
+ON b.boyfriend_id = bo.id
+where bo.id is NULL
+```
+
+ ```sql
+ # 查询哪个部门没有员工 
+ SELECT d.department_id,department_name, e.last_name
+ FROM departments as d 
+ left OUTER join employees as e
+ on e.department_id = d.department_id
+ where e.employee_id is null
+ ```
+
+**交叉连接**
+
+`sql92`语法中笛卡尔乘积的表现形式
+
+```sql
+select b.*, bo.*
+from boys as bo
+cross join beauty as b
+```
+
+全外连接的另外一种用法，可以去取掉了两个集合的交集部分
+
+```sql
+select <select_list>
+from A 
+full join B 
+on A.key = B.key
+where A.key is null
+or B.key is null
+```
+
+**练习**
+
+其中一道出错的题，一开始做的时候是用的inner join，事实上，有城市名存在但是没有员工信息，其中department_id=210, 230的时候是没有员工信息的
+
+```sql
+# 查询部门名为SAL或者IT的员工信息
+SELECT e.*, d.department_name
+FROM employees as e 
+RIGHT JOIN  departments as d 
+on e.department_id = d.department_id
+where d.department_name in ('SAL', 'IT')
+
+```
 
 
 

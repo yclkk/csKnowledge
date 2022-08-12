@@ -1,4 +1,4 @@
-##### 数据库
+##### 	数据库
 
 ### 数据库的常用命令
 
@@ -781,7 +781,11 @@ exists后面(相关子查询)
 1. 子查询要放在小括号内
 2. 子查询一般放在条件的右侧
 3. 标量子查询，一般搭配着单行操作符的使用：`>, <, >=, <=, <>`
-4. 列子查询，一般搭配着多行操作符使用：`IN, ANY/SOME, ALL`
+4. 列子查询，一般搭配着多行操作符使用：`IN/NOT IN, ANY/SOME, ALL`
+   - `IN`：等于列表中的任意一个，`NOT IN`相当于`<>all`
+   - `ANY/SOME`：和子查询返回的某一个值比较，用`MIN/MAX`的可读性会更高
+   - `ALL`：和子查询返回的的所有值比较，用`MIN/MAX`的可读性会更高
+5. 子查询的执行优于主查询执行，主查询的条件用到了子查询的结果
 
 ----
 
@@ -805,7 +809,169 @@ where salary > (
 )
 ```
 
+```sql
+# 返回job_id与141号员工相同，salary比143号员工多的员工姓名，job_id和工资
+# 1. 查询141号员工的job_id
+SELECT job_id
+FROM employees
+where employee_id = 141
 
+# 2. 查询143号员工的salary
+SELECT salary
+FROM employees
+WHERE employee_id = 143
+
+# 3. 查询员工的姓名，job_id和工资，要求job_id=1. 并且salary大于2. 
+SELECT last_name, job_id, salary
+FROM employees
+where job_id = (
+	SELECT job_id
+	FROM employees
+	where employee_id = 141
+)
+and salary > (
+	SELECT salary
+	FROM employees
+	WHERE employee_id = 143
+)
+```
+
+```sql
+# 返回公司工资最少的员工的last_name, job_id, salary
+# 1. 查询公司的最低工资
+SELECT min(salary)
+FROM employees
+
+# 2. 查询姓名 job_id和，salary，要求salary = 1. 
+SELECT last_name, job_id, salary
+FROM employees
+where salary = (
+	SELECT min(salary)
+	FROM employees
+)
+```
+
+---
+
+```sql
+# 查询最低工资大于50号部门最低工资的部门id和其最低工资
+# 1. 查询50号部门的最低工资 
+SELECT MIN(salary)
+FROM employees
+WHERE department_id = 50
+
+
+# 2. 查询每个部门的最低工资
+SELECT department_id, MIN(salary) 
+FROM employees
+GROUP BY department_id
+
+# 3. 查询部门id，其中在2.的基础上，满足min(salary) > 1.  
+SELECT department_id, MIN(salary)
+FROM employees
+GROUP BY department_id
+having MIN(salary) > (
+	SELECT MIN(salary)
+	FROM employees
+	WHERE department_id = 50
+)
+```
+
+**2. 列子查询**
+
+```sql
+# 返回location_id是1400或1700的部门中的所有员工姓名
+SELECT last_name
+FROM departments as d 
+inner join employees as e 
+on d.department_id = e.department_id
+where d.location_id in ('1400', '1700')
+
+或者
+
+# 1. 查询location_id是1400或者1700的部门编号 
+SELECT DISTINCT department_id
+FROM departments
+where location_id in (1400, 1700)
+
+# 2. 查询部门的员工姓名，要求department_id = 1.
+SELECT last_name
+FROM employees
+where department_id in (
+	SELECT DISTINCT department_id
+	FROM departments
+	where location_id in (1400, 1700)
+)
+```
+
+```sql
+# 返回其他部门中比job_id为'IT_PROG'部门任意工资低的员工工号、姓名、job_id 以及salary
+# 1. 查找job_id='IT_PROG'的部门编号的员工工资
+SELECT  distinct salary
+FROM employees
+where job_id = 'IT_PROG'
+
+# 2. 查找其他部门的员工工号、姓名、job_id、salary 其中工资 < any(1. )
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+where job_id != 'IT_PROG'
+and salary < any(
+	SELECT distinct salary
+	FROM employees
+	where job_id = 'IT_PROG'
+)
+
+或者
+SELECT employee_id, last_name, job_id, salary
+FROM employees
+where job_id != 'IT_PROG'
+and salary < (
+	SELECT   max(salary)
+	FROM employees
+	where job_id = 'IT_PROG'
+)
+```
+
+**3. 行子查询**
+
+```sql
+# 查询员工编号最小并且工资最高的员工信息
+第一种做法
+# 1. 查询最小的员工编号
+SELECT min(employee_id)
+FROM employees
+# 2. 查询员工的最高工资
+SELECT max(salary)
+FROM employees
+
+# 3. 查询员工信息
+SELECT *
+FROM employees
+WHERE employee_id = (
+	SELECT min(employee_id)
+	FROM employees
+)
+and salary = (
+	SELECT max(salary)
+ FROM employees
+)
+```
+
+```sql
+使用行子查询
+select *
+from employees
+where (employee_id, salary) = (
+	select min(employee_id), max(salary)
+  from employees
+)
+```
+
+
+
+
+
+****
 
 
 

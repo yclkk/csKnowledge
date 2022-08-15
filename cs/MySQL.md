@@ -967,7 +967,48 @@ where (employee_id, salary) = (
 )
 ```
 
+------
 
+##### select后面
+
+```sql
+# 查询每个部门的员工个数
+SELECT d.*,
+(
+	SELECT count(*)
+	FROM employees as e
+	where e.department_id = d.department_id
+) as 员工个数
+from departments as d
+# 这道题的坑在于，不是所有的部门都有员工
+```
+
+```sql
+# 查询员工号为102的部门名
+SELECT e. employee_id, 
+(
+	SELECT department_name
+	from departments as d 
+	WHERE e.department_id = d.department_id
+) as 部门名
+from employees as e
+WHERE e.employee_id = 102
+或者
+SELECT department_name
+FROM departments as d 
+LEFT JOIN employees as e
+on d.department_id = e.department_id
+WHERE e.employee_id = 102 
+或者
+SELECT 
+(
+	SELECT department_name
+	FROM departments as d 
+	INNER JOIN employees as e 
+	on d.department_id = e.department_id
+	and employee_id = 102
+) as 部门名
+```
 
 
 

@@ -144,6 +144,20 @@
 /*row里面的接的元素必须是col*/
 ```
 
+```html
+<div class="m-2">  等同于margin:2px;
+  
+</div>
+```
+
+`container`是可以自适应的改变页面区域大小
+
+```html
+<div class="container"></div>   
+```
+
+
+
 -----
 
 **ECMASCRIPT6：ES6**
@@ -407,6 +421,16 @@ cancelAnimationFrame(id) // 可以设置一个点击事件，点击的时候停�
     });
 ```
 
+**map**
+
+```js
+map(x => {return x;})
+或者
+map(x => (x))
+```
+
+
+
 ------
 
 **localStorage**：存到用户本地，可以存一些用户的偏好 
@@ -427,23 +451,155 @@ let main = () => {
 }
 ```
 
-```mermaid
-graph TD
-
-A(起床) --> B[洗漱]
-
-B --> C{扔硬币}
-
-C -->|正面朝上| D[喝牛奶]
-
-C -->|反面朝上| E[喝果汁]
-```
-
-
-
 -----
 
 ### react
 
-`react`会在内存里放一个虚拟的`Dom`树， 由于`react`是数据驱动的，因此当数据发生改变的时候，`react`会去把有可能发生变化的节点都做出相应的改变，然后再跟真实的`Dom`树进行比较分析，最后只会修改相应的节点
+`react`会在内存里放一个虚拟的`Dom`树，这个虚拟的`Dom`树是跟真实的一样的， 由于`react`是数据驱动的，因此当数据发生改变的时候，`react`会去把有可能发生变化的节点都做出相应的改变，然后再跟真实的`Dom`树进行比较分析，最后只会修改相应的节点
+
+**DOM树**：虚拟和真实，只是一个例子，不代表真实的`DOM`树
+
+```mermaid
+flowchart TD
+subgraph Virtual DOM;
+a[div] --> b[canvas];
+a --> c[div]
+c --> d[div]
+c --> e[div]
+c --> f[div]
+d --> g[div]
+end;
+
+subgraph DOM;
+A[div] --> B[canvas];
+A --> C[div];
+C --> D[div];
+C --> E[div];
+C --> F[div];
+D --> G[div];
+end;
+```
+
+先写`JSX`，然后再编译称`JS`。其中`X`为`XML`，表示能在`JS`代码中写`XML`，`HTML`也是一种特殊的`XML`
+
+```js
+const person = {
+  name:'zyc',
+  talk: function() {
+    let outer = this;
+    
+    setTimeout(function() {   // 或者使用箭头函数，不会重新绑定this的值。所以一般箭头函数用得多
+      
+        console.log(outer);
+    }, 1000)
+  },
+};
+
+person.talk();
+
+```
+
+```js
+import {Player as myplayer} // 非default导入进来的可以使用as改名
+```
+
+-----
+
+**组件**
+
+- `import React`中的`React`具体用途，`jsx`编译称`js`的时候用到了`babel`，会将`HTML`转换的`React`对应的函数，也就是会将`render`里`html`转换成`React`.什么什么
+- 继承`component`这个`React`组件
+- `state`：其实就是一个局部变量
+- `render()`：`componen`t类里的一个函数，返回当前这个组件最后渲染的`html`结构是什么
+- `render()`里的`return`只能有一个标签，不能有并列的标签。所以可以将并列的标签用`<div>`括起来。也可以使用`<React.Fragment>`使结构不变，是一个虚拟元素
+- `handle`：命名习惯，主要是实现处理事件的
+- `setState()`：里面传的是要修改的内容，比如：`setState({x:this.state.x - 1})`
+
+**绑定事件**
+
+```jsx
+class Box extends Component {
+    state = { 
+        x:0,
+        colors: [],
+     };
+
+     handleLeftClick = (step) => {  // 箭头函数可以使this不重新绑定，依旧是指向Box
+        this.setState({
+            x: this.state.x  - step,
+        })
+        console.log('left', this);
+     };
+  
+  	 handleRightClick(step) {   // 这里的函数不是Box调用的，因此this值为undefined
+        this.setState({
+            x: this.state.x + 1 + step,
+        })
+        console.log('right',this);
+     };
+     handleRightClickTmp = () =>  {    
+        return this.handleRightClick(10);   // 通过这种方式可以给事件函数添加参数 或者也可以通过匿名函数，具体实现看下面onClick
+     };  
+  
+    
+
+    render() { 
+        return (
+            <React.Fragment>
+            <div style={this.getStyles()}>{this.toString()}</div>
+            <button onClick={() => this.handleLeftClick(10)	} className='btn btn-primary m-2'>左边</button>  // onclick是绑定了函数，不加括号的原因是只是传函数，而不是传返回值
+            <button onClick={this.handleRightClickTmp} className='btn btn-danger m-2'>右边 </button>
+            {this.state.colors.map(x => {
+                 return <div key={x}>{x}</div>
+             })}
+            </React.Fragment>
+        );
+    };
+
+    getStyles() {
+        let styles = {
+            width:"100px",
+            height:"100px",
+            backgroundColor:"lightblue",
+            color:"white",
+            lineHeight:"100px",
+            textAlign:"center",
+        };
+
+        if (this.state.x === 0 ) {
+            styles.backgroundColor = "orange";
+        }
+        return styles;
+    }
+    toString() {
+        const {x} = this.state;
+        return `${x}`;
+    }
+}
+ 
+export default Box;
+```
+
+**`filter`**函数
+
+```jsx
+ state = { 
+        solutions : [
+            {key: 10, number:1164, title:"加工零件1", views:3265},
+            {key: 11, number:1165, title:"加工零件2", views:3266},
+            {key: 12, number:1166, title:"加工零件3", views:3267},
+            {key: 13, number:1167, title:"加工零件4", views:3268},
+            {key: 14, number:1168, title:"加工零件5", views:3269},
+            {key: 15, number:1169, title:"加工零件6", views:3270},
+            {key: 16, number:1170, title:"加工零件7", views:3271},
+        ],
+     } 
+    handleDelete(solution) {
+        // filter作用：依次将solutions里的每一个元素作用一遍filter()函数，filter里面传一个函数，如果为true则保留，false则删除
+        const solutions = this.state.solutions.filter(s => {return s !== solution});
+        this.setState({
+            solutions: solutions
+        });
+    }
+```
 

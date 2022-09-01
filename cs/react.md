@@ -20,6 +20,8 @@
 
 `<a href="#id">`可以用这种方式链接到页面内的某个`id` 的标签
 
+[fsd](fff)
+
 **语义标签**
 
 
@@ -603,3 +605,115 @@ export default Box;
     }
 ```
 
+---
+
+**component组合**
+
+```mermaid
+flowchart BT;
+A[father] --data--> B[son]
+B[father] --调用函数--> A[son]
+```
+
+
+
+通过`props`能够接收到从上往下传递过来的数据如下
+
+在`boxes`中，除了`key`以外的属性都会被传到`Box`组件中，在`Box`组件中可以通过`this.props`获取传递过来的值，如下就是`x`和`name`
+
+如果说是定义了节点比如下面的`h`和`p`标签，那在`Box`中就是使用`this.props.children`获取值，因为传过去的时候是以数组的形式传的， 因此可以使用下标获取每一个标签
+
+也可以通过这个特性将函数传给子组件，因此可以实现子组件调用父组件的函数
+
+```jsx
+handleDelete = () => {
+  
+}
+render(
+	return (
+		<Box key=...
+      	 x={..}
+         name='zzz'
+      	 checked       // 只定义属性不定义值的默认为true
+    >
+    	<h1>title</h1>    
+    	<p>content</p>
+       onDelelte={this.handleDelete}   // 可以将onDelete传给子组件，子组件可以调用可以父组件的函数
+    </Box>
+)
+)
+```
+
+**注意**：每个组件的`this.state`只能在组件内部修改，不能在其他组件内修改。如果想通过父组件修改值然后传递给子组件是不能生效的，因为自组件的`state`只执行了一次，父组件修改值是不会影响子组件的
+
+----
+
+**无状态函数组件**：`stateless function component`
+
+在这组件中，不用`this.props`，在参数写`props`就可以
+
+```jsx
+import React, { Component } from 'react';
+
+// 简写sfc
+const Navbar = (props) => {    // 不用this.props 直接传参props  
+    return ( <nav className="navbar navbar-expand-lg navbar-light bg-light">
+                <div className="container-fluid">
+                    <a className="navbar-brand" href="#">Navbar
+                        <span>Boxescount: {props.boxesCount}</span>
+                    </a>
+                </div>
+            </nav> 
+            );
+}
+ 
+export default Navbar;
+```
+
+**或者用另一种方式，直接解构出来**
+
+```jsx
+import React, { Component } from 'react';
+import Box from './box';
+
+// 可以不用props然后直接解构出来，记得加{}
+const Boxes = ({boxes, onReset, onClickLeft, onClickRight, onDelete}) => {
+    return (  <React.Fragment>
+                <button onClick={onReset} className='btn btn-info m-2'>reset</button>
+               
+                {boxes.map(box => (
+                    <Box 
+                        key={box.key} 
+                        x={box.x}
+                        id={box.key}
+                        box={box}
+                        onLeft={() => onClickLeft(box)}
+                        onRight={() => onClickRight(box)}
+                        onDelete={onDelete}
+                    >
+                        <h1>title</h1>
+                        <p>#{box.x}</p>
+                        
+                    </Box>
+                ))}
+               
+            </React.Fragment>);
+}
+ 
+export default Boxes ;
+
+```
+
+---
+
+`Mount`周期，执行顺序：`constructor() -> render() -> componentDidMount()`
+`Update`周期，执行顺序：`render() -> componentDidUpdate()`：在更新的时候虚拟`DOM`树会修改发生改变的组件，但是不会每次都刷新页面，这点可以看开头`react`的介绍
+
+`componentDidUpdate(prevProps, prevState)`：两个参数存的是前一个更新前的值，所以这个参数可以用来判断当数据发生改变时候，使用ajax去更新数据库
+
+```jsx
+prevState.boxes[0] !== this.state.boxes[0];
+ajax......
+```
+
+`Unmount`周期，执行顺序：`componentWillUnmount()`       需要这个组件挂载完也就是对象创建完之后就可以使用`ajax`从服务器获取数据

@@ -611,8 +611,8 @@ export default Box;
 
 ```mermaid
 flowchart BT;
-A[father] --data--> B[son]
-B[father] --调用函数--> A[son]
+A[father] --调用函数---> B[son]
+B[father] --data--> A[son]
 ```
 
 
@@ -717,3 +717,179 @@ ajax......
 ```
 
 `Unmount`周期，执行顺序：`componentWillUnmount()`       需要这个组件挂载完也就是对象创建完之后就可以使用`ajax`从服务器获取数据
+
+-------
+
+**路由**
+
+> 使得前端页面能够与链接一一对应起来，这是因为网站需要url来打开特定的页面，应用与网站不同，应用是可以一层一层点进去的，因此前端渲染的时候网站是假装跟后端渲染一样
+
+页面是由模板+数据组成的。
+
+静态页面是数据写死的，服务端将数据填到模板
+
+动态页面是数据存在数据库里
+
+- 后端渲染：数据拼到模板里是在服务端操作的
+
+```mermaid
+graph LR;
+A(server) -- 当前页面 -----> B(client);
+B(client) -- url --> A(server);
+```
+
+- 前端渲染：数据拼到模板里是在浏览器上完成的
+
+  在`react`中，`react`会将所有内容转换成`js`，再通过`webpack`打包成一个文件，因此这个文件是包含了所有的内容。因此页面需要哪些数据的时候再去跟`server`请求数据
+
+```mermaid
+graph LR;
+A(server) -- 所有页面的模板但不包含数据 -----> B(client);
+B(client) -- url --> A(server);
+```
+
+
+
+`Routes`下包含`Route`
+
+`Link`：`a`标签是执行跳转，`link`不是跳转，而是每次执行完之后会有一个默认的函数，行为变了
+
+当如果动态匹配路由时，可以用`:变量名`获取另一边`Link`来的变量
+
+```jsx
+<Routes>
+  {/* 会去从前往后匹配，匹配到了就会渲染出来，如果没匹配到就不渲染 */}
+  <Route path="/"  element={<Home />} />
+  <Route path="/linux"  element={<Linux />} />
+  <Route path="/django"  element={<Django />} />
+  <Route path="/web"  element={<Web />} />
+   {/* 如果是链接又很多个，那么可以使用:chapter接收变量，然后在<WebContent />函数组件可以使用useParams()可以获取变量 */}
+   <Route path='/web/content/:chapter' element={<WebContent />}></Route>
+  
+  {/* 如果要使用useSearchParams 那就不加后面的:chapter*/}
+  <Route path='/web/content/' element={<WebContent />}></Route>
+  
+</Routes>
+
+ {/* 其他的地方的a标签改为link标签，其中href改为to */}
+<a className="navbar-brand" href="/">Navbar</a> {/*改为*/}
+<link className="navbar-brand" to="/">Navb</Link> {/*这里要注意的是，如果不加to就会报错*/}
+
+ {/* 跟上面链接多个路由挂钩 */}
+{this.state.webs.map(web => (
+  <div key={web.id}>
+    <Link to={`/web/Content/${web.id}`}>{web.id}. {web.title}</Link>
+  </div>  
+))}
+```
+
+使用类组件来获取前面提及的变量，函数组件可以直接使用`useParams()`函数，因此有了以下的曲线救国的变种
+
+```jsx
+import React, { Component } from 'react';
+import { useParams, userParams } from 'react-router-dom';
+
+
+class WebContent extends Component {
+    state = {  } 
+    render() { 
+        console.log(this.props.Params)  // 获取了从无状态函数组件传递来的Params
+        return (
+           
+            <h1>web content</h1>
+        );
+    }
+}
+ // 这里可以理解为是在是在一个新的组件中使用了无状态函数组件，然后再这个无状态函数组件里使用了WebContent这个类组件
+ // 然后在给这个类组件传递了Params这个数据，这个数据是输出前面:chapter变量的，因此在这个无状态函数组件的子组件中WebContent中就可以获取到这个数据
+ // 这里的参数props目前是没什么用处的，讲义是多写了一个{...props}
+export default  (props)  => (
+    <WebContent
+        {...props}
+        Params={useParams()}
+    />
+);
+```
+
+`useSearchParams`的写法
+
+```jsx
+import React, { Component } from 'react';
+
+import { useSearchParams } from 'react-router-dom';
+
+
+class WebContent extends Component {
+    state = { 
+        searchParams: this.props.Params[0],    //. 这里就是useSearchParams的两个参数，是数组的形式
+        setSearchParams:this.props.Params[1],
+    } 
+    render() { 
+        console.log(this.state.searchParams.get('chapter'));
+        return (
+             <React.Fragment>
+                <h1>web - {this.state.searchParams.get('chapter')}</h1>
+                <div>内容</div>
+            </React.Fragment>
+        );
+    }
+}
+ 
+export default  (props)  => (
+    <WebContent
+        Params={useSearchParams()}
+    />
+);
+
+```
+
+404重定向，因为路由是依旧匹配的，所以可以用通配符`*`来匹配没有被路由的路径，因此来达到重定向。背过就可以了
+
+```jsx
+ <Route path='/404' element={<NotFound />}></Route>
+ <Route path='*' element={<Navigate replace to='/404' />}></Route>
+```
+
+实现类似https://www.acwing.com/activity/content/introduction/1150/的内容，只改变下方内容，上方内容都是相似的，这个时候就要用嵌套路由
+
+**注意**：需要在父组件中添加`<Outlet />`组件，用来填充子组件的内容
+
+```jsx
+<Route path="/linux"  element={<Linux />} >
+  {/* 这里就是类似https://www.acwing.com/activity/content/1150/里的内容，只改变页面部分内容但是又是新链接 */}
+   {/* path里的路径会自动拼接成/linux/homework */}
+  <Route path='homework' element={<h4>homework的内容</h4>}></Route>   
+  <Route path='terminal' element={<h4>terminal的内容</h4>}></Route>
+  <Route path='*' element={<h4>terminal的内容</h4>}></Route>
+</Route>
+
+render() { 
+  return (
+    <React.Fragment>
+      <h1>linux</h1>
+      <hr />
+      <Link to='/linux/homework'>作业</Link>
+      <Outlet />
+    </React.Fragment>
+  );
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

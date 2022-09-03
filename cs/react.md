@@ -875,6 +875,176 @@ render() {
 }
 ```
 
+-----
+
+**Redux**
+
+`redux`里面的值一般也称为`state`，是一个对象。在存储对象的时候，`redux`会维护成一个树结构，每一个节点都会存一个值
+
+存储这个树结构是使用`js`的字典（对象？）来存。然后会将这颗树构造一个叫`store`的东西，也可以认为是树根
+
+`redux`里的值习惯存到叶子结点上
+
+```mermaid
+flowchart TD;
+subgraph State;
+A(state) --> B(state)
+A(state) --> C(state)
+A(state) --> D(state)
+C(state) --> E(state)
+C(state) --> F(state)
+end;
+subgraph Store;
+A(state) --> a(store)
+end;
+```
+
+`store`里面是一个字典，因此三个儿子可以用`store.a, store.b, store.c`，以此类推，第二个儿子节点的儿子节点就可以用`store.b.d`，来获取值
+
+`reducer`：维护每一个节点的值，每一个`state`都有一个对应的`reducer`，`reducer`可以修改当前节点。可以传入两个参数，传入上一个`state`的值以及一个参数，然后计算新的`state`的值。
+
+`dispatch`：修改树里面某一个值，去修改树里某一个值的时候，`redux`会将整个树重新起算一遍。传入一个对象`action`，然后`action`有个值叫`type`，这个`type`是自己定义的，然后每一个节点都有一个唯一对应的`type`，每一个`reducer`会去判断当前`type`的值是否与`dispatch`传进来的`action`里的`type`值是否相对应，如果匹配就会做一个更新，否则原样不动
+
+----
+
+**实现**：可以实现单节点，也可以实现多节点。如果只是一个`f1`，然后使用`configureStore：f1` 那就是单节点，如果实现多节点，那就需要将多节点结合起来，比如`f3`
+
+```mermaid
+flowchart TD;
+
+f3(f3 state) ---> f2(f2 state);
+f3(f3 state) ---> f1(f1 state);
+```
+
+```jsx
+import {configureStore} from '@reduxjs/toolkit';
+import {combineReducers} from '@reduxjs/toolkit';
+// 定义reducer f1
+const f1 = (state = 0, action) => {
+  switch(action.type) {
+    case 'add':
+      return state + action.value;
+    case 'sub':
+      return state - action.value;
+    default:
+      return state;
+  }
+};
+
+// 定义reducer f2
+const f2 = (state = "", action) => {
+  switch(action.type) {
+    case 'concat':
+      return state + action.character;
+    default:
+      return state;
+  }
+};
+
+// const f3 = (state = {}, action) => {
+//   return {
+//     // 这两行的第一个参数不是很理解
+//     /* 
+//       可以这样理解，这里的return是返回state值，所以说f2是f1那里return的state的值，
+//       因此f1(state.f2, action)中第一个参数就是f1返回的state，会存到f3种state的f2里
+//     */
+//     f2: f1(state.f2, action),   
+//     f4: f2(state.f4, action),
+//   }
+// }
+// 另一种写法，使用combineReducers，等同于上一种写法，参数名不重要，随便取的
+const f3 = combineReducers({
+  f1:f1,
+  f2:f2,
+})  
+
+
+
+
+// 将定义的f3转换为树结构
+const store = configureStore({
+  reducer: f3
+});
+// 每次触发dispatch的时候都会执行这个subscribe函数
+store.subscribe(() => {console.log(store.getState())});
+// 传递action对象，其中这里和f1中type名字是任意取的，只是习惯上取type。type是必须的，也可以额外加参数，比如value
+store.dispatch({type: 'add', value: 5});
+store.dispatch({type: 'add', value: 5});
+store.dispatch({type: 'add', value: 5});
+store.dispatch({type: 'add', value: 5});
+store.dispatch({type: 'sub', value: 1});
+store.dispatch({type: 'sub', value: 1});
+store.dispatch({type: "concat", character: 'zyc'});
+
+```
+
+-----
+
+**react-redux**
+
+
+
+`Provider`组件：用来包裹整个项目，其`store`属性用来存储`redux`的`store`对象。
+
+`connect(mapStateToProps, mapDispatchToProps`)函数：用来将`store`与组件关联起来，返回一个组装好的组件
+
+`mapStateToProps`：将组装好的值传入`props`里面，也就是将`store`里面`state`的值绑定到组件的 `props`里。每次`store`中的状态更新后调用一次，用来更新组件中的值。
+
+`mapDispatchToProps`：组件创建时调用一次，用来将`store`的`dispatch`函数传入组件
+
+**点击了`button`，触发`onClick -> handleClick -> this.props.concat`等同于`mapDispatchToProps`里的`concat`，是通过`connect`将`mapDispatchToProps`绑定到`props`，然后`concat`会返回一个`action`，`connect`函数不仅是绑定组件，还会将这个返回值作用到整个状态树的`dispatch`函数上，也就意味返回值会作用到所有的`reducer`函数里边。返回值会作用到前边定义的`f1 `和 `f2`上，执行到`f2`的时候会发现`concat`匹配上了，然后由于全局状态树是在`Provider`这个组件上，所以就会将`Provider`都渲染一遍，因此`string`就会被重新渲染，所以`state.string`就会重新获取，然后通过`connect`将新的`string`绑定到`props`，最后新值就被重新渲染出来**
+
+```jsx
+root.render(
+  <Provider store={store}>   {/* 要写store，不写会报错 */}
+    <App />
+  </Provider>
+);
+
+
+import React, { Component } from 'react';
+import {connect} from 'react-redux';
+
+class Number extends Component {
+    state = {  } 
+  
+ 	  handleClick = () => {
+         this.props.concat('y');
+    }
+  
+    render() { 
+        console.log(this.props);
+        return (
+            <React.Fragment>
+                <h3>number:{this.props.number}</h3>
+ 								<button onClick={this.handleClick}>添加</button>            
+            </React.Fragment>
+        );
+    }
+}
+
+// store里的state.number绑定到当前组件的props.number上
+// 每次调用dispatch函数之后，组件都会重新渲染一遍，那么就会调用connect函数，然后再调用mapStateToProps，最后值就会被改变
+const mapStateToProps = (state, props) => {
+    return {
+        number: state.number,
+    };
+};
+const mapDispatchToProps = {
+    concat: (c) => {
+        return {
+            type: "concat", // 这是前面定义的另一个文件定义的type
+            character: c,
+        }
+    }
+}
+ // 前面会返回一个函数，然后这个函数再传当前组件参数，最后返回一个新的组件
+// export default connect(mapStateToProps)(Number);
+export default connect(mapStateToProps, mapDispatchToProps)(Number);
+```
+
+
+
 
 
 

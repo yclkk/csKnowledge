@@ -811,7 +811,7 @@ export default  (props)  => (
 );
 ```
 
-`useSearchParams`的写法
+`useSearchParams`的写法：可以用来获取`web/content?charpter=1`值，`?变量=值`
 
 ```jsx
 import React, { Component } from 'react';

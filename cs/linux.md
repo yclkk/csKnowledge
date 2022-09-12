@@ -1998,7 +1998,7 @@ ssh root@xxx.xxx.xxx.xxx -p 20000
 
 
 
-fg
+==fg==
 
 gg d G 删除所有	
 

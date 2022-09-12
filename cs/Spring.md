@@ -100,7 +100,7 @@ E --> i(Bot的对战记录)
 
 #### 前端
 
-**第一节课**
+##### 第一节课
 
 1. 确定好前端的导航栏和内容区的布局，去`bootstrap`官网找一个合适的`navbar`布局给导航栏
 
@@ -553,7 +553,7 @@ E --> i(Bot的对战记录)
     					如果连同不了，那这个图就不生成了，需要重新刷新页面
     				*/
             const copy_g = JSON.parse(JSON.stringify(g));
-            if (!this.check_connectivity(copy_g, 2, this.rows - 2, this.cols - 2, 2)) {
+            if (!this.check_connectivity(copy_g,  this.rows - 2, 1, 1, this.cols - 2, )) {
                  return false;
             }
     
@@ -583,9 +583,417 @@ E --> i(Bot的对战记录)
 
 ------
 
+##### 第二节课
 
+1. **避免两条蛇进入到同一个格子**
+   
+   - 一开始设定的是地图大小是1 3* 13，左下角的点为(11, 1)，右上为(1, 11)，当蛇走一步时，横纵之和会在奇偶之间穿插，如果地图设定为13 * 13，两条蛇就可能进入到同一个格子
+   - 将地图更改为满足要求的长方形
+   - 非正方形不满足轴对称，考虑换成中心对称
+   
+   ![the_second_lesson_symmetric](../src/the_second_lesson_symmetric.png)
+   
+   - 更改画墙的逻辑
+   
+   ```js
+       for (let j = 0; j < 1000; j++) {
+         /*
+          1. 循环1000次是为了保证随机能够随机生成成功，不建议死循环，容易写不好把浏览器卡死
+          2. 为了对称，需要g[r][c], g[c][r]同时判断，后续改为中心对称 
+          3. 第二个if是为了将左下和右上的点排出
+         */
+   
+         let r = parseInt(Math.random() * this.rows);
+         let c = parseInt(Math.random() * this.cols);
+         // 修改了
+         if (g[r][c] || g[this.rows - 1 - r][this.cols - 1 - c]) {
+           continue;
+         }
+         if (r == 1 && c == this.cols - 2 || r == this.rows - 2 && c == 1) {
+           continue;
+         }
+         // 修改了
+         g[r][c] = g[this.rows - 1 - r][this.cols - 1 - c] = true;
+         break; 
+       }
+   }
+   ```
+   
+   ------
+   
+1. **画蛇头：**蛇的起点在左下和右下
+   
+   - 前10步每一步增长一个单位，往后每3步增长一个单位，
+   - 蛇是由一堆圆组成的，一条蛇就是一堆圆组成的序列
+   - 方便画蛇，定义一个格子`Cell.js`。在`canvas`里坐标系跟定义的是反的，所以先将坐标转换成`canavs`的坐标，因为是要画圆，存下圆心的坐标`(x + 0.5, y + 0.5)`。使用canvas画圆：`ctx.arc()`前两个参数是小圆的终点，第三个是圆的半径，后两个是圆弧的起始角度和终止角度
+   
+   ```js
+   export class Cell {
+       constructor(r, c) {
+           this.r = r;
+           this.c = c;
+           this.x = c + 0.5;
+           this.y = r + 0.5;
+       }
+   }
+   ```
+   
+   - 将蛇定义为对象`Snake.js`，构造函数的两个参数都是从GameMap传过来的，定义了蛇的id，颜色，坐标。在第二点说到，蛇是由圆组成的序列，因此在每条蛇都有一个`this.Cells`来存放蛇的序列
+   
+   ```js
+   import { AcGameObject } from "./AcGameObjects";
+   import { Cell } from "./Cell";
+   
+   export class Snake extends AcGameObject{
+       constructor(info, gamemap) {
+           super();
+           this.r = info.r;
+           this.c = info.c;
+           this.color = info.color;
+           this.id = info.id;
+           this.gamemap = gamemap;
+   
+           this.Cells = [
+               new Cell(info.r, info.c),
+           ]
+   
+       }
+   
+       start() {
+   
+       }
+   
+       update() { // 每一帧都会渲染
+           this.render();
+       }
+   
+       render() {
+           const L = this.gamemap.L;
+           const ctx = this.gamemap.ctx;
+           ctx.fillStyle = this.color;
+           for (const cell of this.Cells) {
+               // 画圆
+               ctx.beginPath();
+               ctx.arc(L * cell.x, L * cell.y, L / 2, 0, Math.PI * 2);
+               ctx.fill(); // 填充颜色
+           }
+       }
+   
+   
+   }
+   ```
+   
+   补充`GameMap.js`的构造函数
+   
+   ```js
+   this.snakes = [
+               new Snake({id: 0, color: "#4876EC", r: this.rows - 2, c: 1}, this),
+               new Snake({id: 1, color: "#F94848", r: 1, c: this.cols - 2}, this),
+   
+           ]
+   ```
+   
+   
+   
+   ![the_second_lesson_snakeHead](../src/the_second_lesson_snakeHead.png)
+   
+   -----
+   
+1. **让蛇移动**
+   
+   - 在`Snake`类里写`move`函数，只是一个简答的移动，`timedelta`表示两帧之间的毫秒数，$s=v * t$
+   
+   ```js
+   		update_move() {
+          // this.speed 自己设定的成员变量。
+      		 // 向右移动，可以随意自己改移动的方向
+           this.Cells[0].x += this.speed * this.timedelta / 1000;
+       }
+       update() {
+           this.update_move();
+           this.render();
+       }
+   ```
+   
+   - 移动时有细节问题：创建一个新的头，其他位置都是不变的，让新的头部朝目的地移动，尾巴就朝着下一个位置动就好了，所以只有头和尾在动，其他地方是不变的，拐角就可以保持原样
+   
+   ![the_second_lesson_snakeMove](../src/the_second_lesson_snakeMove.png)
+   
+   --------
+   
+   - 只有当两条蛇都接收到了下一步指令的时候才会让两条蛇分别朝对应的方向移动。每条蛇不能自己判断自己是否需要移动，应该有一个裁判，裁判放在公共的位置GameMap里
+   
+     ```js
+     GameMap.js
+     check_ready() {  // 判断两条蛇是否都准备好下一回合了
+             for (const snake of this.snakes) {
+                 if (snake.status !== "idle") return false;
+                 if (snake.direction === -1) return false;
+             }
+             return true;
+         }
+     
+     next_step() {  // 让两条蛇进入下一回合
+             for (const snake of this.snakes) {
+                 snake.next_step();
+             }
+         }
+     
+     update() {
+             this.update_size();
+             if (this.check_ready()) {
+                 this.next_step();
+             }
+             this.render();
+         }
+     ```
+   
+   - 如果准备好下一步的时候，每条蛇都要跟新一下状态，表示进到下一回合。如果要知道走下一步是往哪走。有些回合蛇不会变长，有些会，要统计回合数
+   
+     ```js
+     snake.js
+     next_step() {  // 蛇的状变为走下一步
+             const d = this.direction;
+             this.next_cell = new Cell(this.cells[0].r + this.dr[d], this.cells[0].c + this.dc[d]);
+             this.direction = -1;  // 清空状态
+             this.status = "move";
+             this.step ++;
+             const k = this.cells.length;  // 求小球的数量
+             // 每一位小球都向后移动一位
+             for (let i = k; i > 0; i--) { 
+                 // 第一个不用，就可以产生头部多了一个自己的复制
+                 this.cells[i] = JSON.parse(JSON.stringify(this.cells[i - 1]));
+             }
+         }
+     ```
+   
+   - 如何获取用户的操作：目前无法从后端获取操作，只能从前端获取。在canvas标签里添加tabindex="0"就可以获取用户的操作了 
+   
+     ```js
+     GameMap.js
+     add_listening_events() {
+             this.ctx.canvas.focus();
+     
+             const [snake0, snake1] = this.snakes;
+             this.ctx.canvas.addEventListener("keydown", e => {
+                 if (e.key === 'w') snake0.set_direction(0);
+                 else if (e.key === 'd') snake0.set_direction(1);
+                 else if (e.key === 's') snake0.set_direction(2);
+                 else if (e.key === 'a') snake0.set_direction(3);
+                 else if (e.key === 'ArrowUp') snake1.set_direction(0);
+                 else if (e.key === 'ArrowRight') snake1.set_direction(1);
+                 else if (e.key === 'ArrowDown') snake1.set_direction(2);
+                 else if (e.key === 'ArrowLeft') snake1.set_direction(3);
+             });
+         }
+     ```
+   
+   - 头部抛出一个新的球，让新的球朝目的地移动
+   
+     ![the_second_lesson_move](../src/the_second_lesson_move.png)
+   
+     ```js
+     Snake.js
+     update_move() {
+             // this.cells[0].x += this.speed * this.timedelta / 1000;
+             const dx = this.next_cell.x - this.cells[0].x;
+             const dy = this.next_cell.y - this.cells[0].y;
+             const distance = Math.sqrt(dx * dx + dy * dy);  // 走完一格的距离，所以可以用dx dy distance求角度
+     
+             // 判断是不是走到了终点，当两个点足够接近的时候就认为已经走在一块了
+             if (distance < this.eps) {  // 移到了目标点，应该停下来
+                 this.cells[0] = this.next_cell;  // 把目标点存下来作为新的头
+                 this.next_cell = null;
+                 this.status = "idle";
+             } else {  // 不重合
+                 const move_distance = this.speed * this.timedelta / 1000; // 实际走的距离
+                 this.cells[0].x += move_distance * dx / distance;
+                 this.cells[0].y += move_distance * dy / distance;
+             }
+         }
+         update() {
+             if (this.status === "move") {
+                 this.update_move();
+             }
+             this.render();
+         }
+     ```
+   
+   - 成员变量
+   
+     ```js
+     this.next_cell = null; // 下一步的目标
+     this.direction = -1;  // -1表示没有指令，0、1、2、3表示上右下左
+     this.status = "idle";  // idle表示静止，move表示正在移动，die表示死亡
+     
+     this.dr = [-1, 0, 1, 0];  // 4个方向行的偏移量
+     this.dc = [0, 1, 0, -1];  // 4个方向列的偏移量
+     
+     
+     this.step = 0;
+     this.eps = 1e-2;  // 允许的误差
+     ```
+   
+     ----
+   
+4. **蛇尾移动**
 
+   - 先判断蛇的长度在当前回合是否增加
 
+     ```js
+     Snake.js
+     check_tail_increasing() {  // 检测当前回合，蛇的长度是否增加
+             if (this.step < 10) return true;
+             if (this.step % 3 === 1) return true;
+             return false;   
+         } 
+     ```
+
+   - 蛇尾变长，那就蛇尾不动；如果蛇尾不变长，那么就要跟着蛇头一起动
+
+     ```js
+      update_move() {
+        // this.cells[0].x += this.speed * this.timedelta / 1000;
+        const dx = this.next_cell.x - this.cells[0].x;
+        const dy = this.next_cell.y - this.cells[0].y;
+        const distance = Math.sqrt(dx * dx + dy * dy);  // 走完一格的距离，所以可以用dx dy distance求角度
+     
+        // 判断是不是走到了终点，当两个点足够接近的时候就认为已经走在一块了
+        if (distance < this.eps) {  // 移到了目标点，应该停下来
+          this.cells[0] = this.next_cell;  // 把目标点存下来作为新的头
+          this.next_cell = null;
+          this.status = "idle";
+     
+          if (!this.check_tail_increasing()) {
+            this.cells.pop();  // 长度不变，最后一个往前挪了，需要砍掉最后一个
+          }
+        } else {  // 不重合
+          const move_distance = this.speed * this.timedelta / 1000; // 实际走的距离
+          this.cells[0].x += move_distance * dx / distance;
+          this.cells[0].y += move_distance * dy / distance;
+     
+          if (!this.check_tail_increasing()) {  // 蛇尾的长度不增加
+            const k = this.cells.length;
+            const tail = this.cells[k - 1], tail_target = this.cells[k - 2];
+            const tail_dx = tail_target.x - tail.x ;
+            const tail_dy = tail_target.y - tail.y ;
+            tail.x += move_distance * tail_dx / distance;
+            tail.y += move_distance * tail_dy / distance; // 因为头尾是一起动的，所以距离通用
+     
+     
+     
+          }
+        }
+      }	
+     ```
+
+     ---
+
+5. **将蛇变得好看**
+
+   - 在两个圆之间用长方形覆盖
+
+     ![the_second_lesson_beauty](../src/the_second_lesson_beauty.png)
+
+   - 三种情况：
+
+     - 两个圆重合
+     - x轴重合：不确定两个哪个在上，y值取两个圆的最小值
+     - y轴重合：不确定两个圆那个在左，取x的最小值
+     - 为了更好看，不重合，把宽度画成80%，长度不变，因为长度是两个圆心之间的距离，同时也要将圆的大小画成80%
+
+     ![the_second_lesson_beauty](../src/the_second_lesson_beauty1.png)
+
+     ```js
+     Snake.js下的render()
+     for (let i = 1; i < this.cells.length; i++) {
+       const a = this.cells[i - 1], b = this.cells[i];
+       if (Math.abs(a.x - b.x) < this.eps && Math.abs(a.y - b.y) < this.eps) continue;
+       if (Math.abs(a.x - b.x) < this.eps) {
+         ctx.fillRect((a.x - 0.4) * L, Math.min(a.y, b.y) * L, L * 0.8, Math.abs(a.y - b.y) * L);
+       } else {
+         ctx.fillRect(Math.min(a.x, b.x) * L, (a.y - 0.4) * L, Math.abs(a.x - b.x) * L, L * 0.8);
+       }
+     }
+     ```
+
+     ----
+
+6.  **检测目标格子是否非法**
+
+   - GameMap作为裁判
+
+     ```js
+     check_valid(cell) {
+       for (const wall of this.walls) {  // 判断墙
+         if (cell.r === wall.r && cell.c === wall.c) {
+           return false;
+         }
+       }
+       for (const snake of this.snakes) {
+         let k = snake.cells.length;
+         if (!snake.check_tail_increasing()) {// 当蛇尾会前进的时候，蛇尾不要判断
+           k--;
+         }
+         for (let i = 0; i < k; i ++) {  // 判断蛇的身体
+           if (snake.cells[i].r === cell.r && snake.cells[i].c === cell.c) {
+             return false;
+           }
+         }
+       }
+       return true;
+     }
+     ```
+
+   - 在Sanke.js的next_step函数判断下一步的合法性
+
+     ```js
+     if (!this.gamemap.check_valid(this.next_cell)) { // 下一步操作非法，蛇死亡
+       this.status = "die";
+     }
+     ```
+
+   - render函数渲染死亡蛇的效果
+
+     ```js
+     if (this.status === "die") {
+       this.color = "white";
+     } 
+     ```
+
+     ---
+
+7. **给蛇加眼睛**
+
+   - 当蛇的方向不同的时候，**蛇的眼睛也在不同的**
+
+     ```js
+     this.eye_direction = 0;
+     if (this.id === 1) this.eye_direction = 2; // 左下角蛇头朝上，右上角朝下
+     
+      next_step() {  // 蛇的状变为走下一步
+        this.eye_direction = d;  // 改变眼睛的方向
+     ```
+
+   - 计算不同方向蛇的眼睛的偏移量，蛇的眼睛为黑色
+
+     ![the_second_lesson_eyes](../src/the_second_lesson_eyes.png)
+
+     ```js
+     //render()渲染眼睛
+     for (let i = 0; i < 2; i ++) { // 遍历2次是画2个眼珠，偏移量为0.15，半径为0.05L
+       ctx.fillStyle = "black";
+       const eye_x = (this.cells[0].x + this.eye_dx[this.eye_direction][i] * 0.15) * L;
+       const eye_y = (this.cells[0].y + this.eye_dy[this.eye_direction][i] * 0.15) * L;
+       ctx.beginPath();
+       ctx.arc(eye_x, eye_y, 0.05 * L, 0, Math.PI * 2);
+       ctx.fill();
+     }
+     ```
+
+     
+
+​	
 
 ----
 

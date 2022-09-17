@@ -1638,7 +1638,7 @@ scp ~/.vimrc ~/.tmux.conf myser
 
 24. `git pull`：将远程仓库的当前分支和本地仓库的当前分支合并
 
-    `git push origin branch_name`：将远程仓库的`branch_name`分支与本地仓库的当前分支合并
+    `git pull origin branch_name`：将远程仓库的`branch_name`分支与本地仓库的当前分支合并
 
 25. `git branch --set-upstream-to=origin/branch_name1 branch_name2`：将远程的`branch_nam1`分支和`branch_name2`分支合并
 

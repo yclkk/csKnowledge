@@ -991,7 +991,219 @@ E --> i(Bot的对战记录)
      }
      ```
 
+     -----
+
+#### 后端
+
+-----
+
+##### Mysql
+
+1. 添加依赖：去maven仓库搜索相关以来，添加到pom.xml
+   - mybatis-plus-generator：自动生成一些函数，比如mapper之类的
+   - mybatis-plus-boot-starter：帮我们写了很多mysql
+   - Project Lombok：简化代码
+   - spring-boot-starter-security：权限判断模块
+   
+2. springboot访问数据库：如同终端和其他图形化页面一样，springboot连接mysql时也需要配置用户名和密码
+
+3. springboot中常用模块
+
+   - pojo层：`table -> class`。将数据库中的表对应成Java中的Class。
+
+     - sql注入springboot已经帮我们实现了
+
+   - mapper层：`class中的语句 -> sql`（也叫Dao层）：将pojo层的class中的操作，映射成sql语句。
+
+   - service层：写具体的==业务==逻辑，组合使用mapper中的操作
+
+   - controller层：==调度service==。负责请求转发，接受==（前端）==页面过来的参数，传给Service处理，接到返回值，再传给页面。
+
+     ```mermaid
+     graph LR
+     A(pojo) --> B(mapper) 
+     B --> C(service)
+     C --> D(controller)
      
+     ```
+
+4. `MyBatis-Plus`
+
+   - 条件构造器：`QueryWrapper`
+
+     > 继承自 AbstractWrapper ,自身的内部属性 **entity 也用于生成 where 条件**
+     > 及 LambdaQueryWrapper, 可以通过 new QueryWrapper().lambda() 方法获取
+
+     **例子**
+
+     ```java
+     @GetMapping("/user/{userId}/")
+     public User getUser(@PathVariable int userId) {
+       QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+       queryWrapper.eq("id", 1);  // 可以在官网查，有很多操作，比如lt gt ge le
+       													// 同时支持连贯操作: ge().le()，实现>= && <= 
+       return userMapper.selectOne(queryWrapper);
+     }
+     ```
+
+   - `Mapper`
+
+     **例子**
+
+     ```java
+     @GetMapping("/user/add/{userId}/{username}/{rating}")  // 插入和删除一般是使用Post
+     public String insertUser(@PathVariable int userId,
+                              @PathVariable String username,
+                              @PathVariable int rating) {
+       User user = new User(userId, username, rating);
+       userMapper.insert(user);
+       return "add successfully";
+     }
+     ```
+
+   ---
+
+5. **用户认证**：权限判断
+
+   - 加了spring-boot-starter-security依赖之后就帮我们实现了很多页面。没有登录时登陆页面的用户名是user，密码在项目运行里有写
+
+     ![the_second_lesson_judgement](../src/the_second_lesson_login.png)
+
+     ![the_second_lesson_judgement](../src/the_second_lesson_logout.png)
+
+   - **传统的用户登陆方式**
+
+     1. 正常登陆：`Client --> SpringBoot(server) --> mysql`，然后结果返回`mysql --> SpringBoot(server) --> Client`
+     2. 正常登陆完之后，`Springboot`生成一个随机字符串`sessionId`发送给`Client`，`Client`将`sessionId`存到`cookie`，一般这个`sessionId`会存在`mysql`或者`redis`里
+     3. 用户再次请求时，`Client`会发送`cookie`，`springboot`会取`cookie`中的`sessionId`值，然后取跟`mysql`匹配，同时看看`sessionId`有没有过期，`mysql`中存的不只是`sessionId`，还有比如用户名之类的数据
+     4. 如果`sessionId`过期了，那么`server`就会发送一个登陆页面给`Client`
+
+     ![the_second_lesson_judgement](../src/the_second_lesson_traditionalLogin.png)
+
+   - 将spring-security对接数据库，不再限于只有一个user登陆
+
+     1. 实现service.impl.UserDetailsServiceImpl类，实现UserDetailsService接口
+
+     2. 重写接口的方法：通过username返回一个**UserDetails**，里面包含用户名和密码
+
+        ```java
+        @Override
+        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+            QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+            queryWrapper.eq("username", username);
+            User user = userMapper.selectOne(queryWrapper);
+            if (user == null) {
+              throw new RuntimeException("用户不存在");
+            }
+            return new UserDetailsImpl(user);
+          }
+        ```
+        
+     3. 在service.utils下创建UserDetailsImpl实现UserDetails接口，同时有很多is...方法，根据自己的需要改为true还是false
+     
+        ```java
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public class UserDetailsImpl implements UserDetails {
+        
+            private User user;
+        
+            @Override
+            public Collection<? extends GrantedAuthority> getAuthorities() {
+                return null;
+            }
+        
+            @Override
+            public String getPassword() {
+                return user.getPassword();
+            }
+        
+            @Override
+            public String getUsername() {
+                return user.getUsername();
+            }
+        
+            @Override
+            public boolean isAccountNonExpired() {
+                return true;
+            }
+        
+            @Override
+            public boolean isAccountNonLocked() {
+                return true;
+            }
+        
+            @Override
+            public boolean isCredentialsNonExpired() {
+                return true;
+            }
+        
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+        }
+        ```
+     
+     4. 这个时候去验证用户名密码，会报一个错：There is no PasswordEncoder mapped for the id "null"，这是因为密码是使用的明文传输，可以去用户的密码前缀加上{noop}，springboot在去判断密码的时候就知道这个是明文密码
+     
+   - **加密**
+
+     ```mermaid
+     graph LR;
+     
+     a(加密前的字符串) --容易转换--> b(加密后的字符串)
+     b(加密后的字符串) --不容易转换--> a(加密前的字符串) 
+     ```
+
+     1. 创建config.SecurityConfig类，spring-security会调用这个方法，因为有注解，然后会返回某种加密方式，跟前面的报错对应上。PasswordEncoder应该是一个接口，BCryptPasswordEncoder应该是实现了PasswordEncoder接口，可以查看里面有很多API
+
+        ```java
+        @Configuration
+        @EnableWebSecurity
+        public class SecurityConfig {
+        
+            @Bean
+            public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+            }
+        }
+        ```
+
+     2. 测试BCryptPasswordEncoder的加密，加密的字符串不是每一次都一样的，但是使用matches()是可以匹配上的
+
+        ```java
+        @Test
+        	void contextLoads() {
+        		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        		System.out.println(passwordEncoder.encode("zyc")); 
+        		System.out.println(passwordEncoder.encode("zyc"));
+        		System.out.println(passwordEncoder.matches("zyc", "$2a$10$t/g4ReQX1PXS6R15qPlqTOmzK4DB1epTUKSrWzB7ezKgF3LtJUBkK"));
+        		System.out.println(passwordEncoder.matches("zyc", "$2a$10$rP/xwjlFw62wRmCu26IKOO67jkz99Dzok7xaIonbsE5z3Z8Wrthwa"));
+        	}
+        ```
+
+     3. 改善userController里的insertUser方法，存储加密后的密码
+
+        ```java
+        @GetMapping("/user/add/{userId}/{username}/{rating}")
+        public String insertUser(@PathVariable int userId, @PathVariable String username, @PathVariable String password) {
+             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+             String encodeedPassword = passwordEncoder.encode(password);
+             User user = new User(userId, username, encodeedPassword);
+             userMapper.insert(user);
+             return "add successfully";
+         }
+        ```
+
+        
+
+6. 
+
+---
+
+
 
 ​	
 
@@ -999,10 +1211,30 @@ E --> i(Bot的对战记录)
 
 ### 注解
 
-1. **Controller**：
+1. **Controller**
    - `@Controller`
    - `@RestController`：该`controller`返回的是**数据**
    - `@RequsetMapping("path")`：在类外写就是父目录，在函数外写子目录，进入该路径执行这个函数，总路径是父+子
+     - `GetMapping`：只映射Get请求。
+       - `GetMapping("path/{variable}")`：可以传变量，在方法名里通过注解`@PathVariable`获取变量
+     - `PostMapping`：只映射Post请求
+1. **pojo**
+   - `@Data`：自动帮我们填充比如`	tostring, get, set`
+   - `@NoArgsConstructor`：填充无参构造函数
+   - `@AllArgsConstructor`：有参构造函数
+1. **mapper**
+   - `@Mapper`
+   - `mybatis plus`帮我们实现了很多`sql`语句，因此可以继承`BaseMapper<T>`从而实现`mybaits plus`。其中`T`是指`pojo`层中定义的`class`
+1. **其他**
+   - `Autowired`：如果在某层想要使用其他层的接口或者类
+
+
+
+### 补充
+
+1. `target`目录就是编译完之后的结果
+1. 在pojo层对表中列的属性类型是需要转换成对象类型，比如`int -> Integer`
+1. windows下`alt + insert`，mac下`cmd + n`可以快捷生成一些东西
 
 
 

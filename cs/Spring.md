@@ -45,7 +45,7 @@ public class Main {
 
 
 
-### 项目（King of bot）
+## 项目（King of bot）
 
 **简介**
 
@@ -98,9 +98,9 @@ E --> i(Bot的对战记录)
 
 ----
 
-#### 前端
+### 前端
 
-##### 第一节课
+#### 第一节课
 
 1. 确定好前端的导航栏和内容区的布局，去`bootstrap`官网找一个合适的`navbar`布局给导航栏
 
@@ -583,7 +583,7 @@ E --> i(Bot的对战记录)
 
 ------
 
-##### 第二节课
+#### 第二节课
 
 1. **避免两条蛇进入到同一个格子**
    
@@ -993,215 +993,942 @@ E --> i(Bot的对战记录)
 
      -----
 
-#### 后端
+### 后端
 
 -----
 
-##### Mysql
+#### Mysql
 
-1. 添加依赖：去maven仓库搜索相关以来，添加到pom.xml
-   - mybatis-plus-generator：自动生成一些函数，比如mapper之类的
-   - mybatis-plus-boot-starter：帮我们写了很多mysql
-   - Project Lombok：简化代码
-   - spring-boot-starter-security：权限判断模块
-   
-2. springboot访问数据库：如同终端和其他图形化页面一样，springboot连接mysql时也需要配置用户名和密码
+##### 第一节课
 
-3. springboot中常用模块
+###### 1. 添加依赖
 
-   - pojo层：`table -> class`。将数据库中的表对应成Java中的Class。
+> 去maven仓库搜索相关以来，添加到pom.xml
 
-     - sql注入springboot已经帮我们实现了
+- mybatis-plus-generator：自动生成一些函数，比如mapper之类的
+- mybatis-plus-boot-starter：帮我们写了很多mysql
+- Project Lombok：简化代码
+- spring-boot-starter-security：权限判断模块
+- jjwt-api
+- jjwt-impl
+- jjwt-jackson
 
-   - mapper层：`class中的语句 -> sql`（也叫Dao层）：将pojo层的class中的操作，映射成sql语句。
+###### 2. springboot访问数据库
 
-   - service层：写具体的==业务==逻辑，组合使用mapper中的操作
+> 如同终端和其他图形化页面一样，springboot连接mysql时也需要配置用户名和密码
 
-   - controller层：==调度service==。负责请求转发，接受==（前端）==页面过来的参数，传给Service处理，接到返回值，再传给页面。
+###### 3. springboot中常用模块
 
-     ```mermaid
-     graph LR
-     A(pojo) --> B(mapper) 
-     B --> C(service)
-     C --> D(controller)
+- pojo层：`table -> class`。将数据库中的表对应成Java中的Class。
+
+  - sql注入springboot已经帮我们实现了
+
+- mapper层：`class中的语句 -> sql`（也叫Dao层）：将pojo层的class中的操作，映射成sql语句。
+
+- service层：写具体的==业务==逻辑，组合使用mapper中的操作
+
+- controller层：==调度service==。负责请求转发，接受==（前端）==页面过来的参数，传给Service处理，接到返回值，再传给页面。
+
+  ```mermaid
+  graph LR
+  A(pojo) --> B(mapper) 
+  B --> C(service)
+  C --> D(controller)
+  
+  ```
+
+###### 4. `MyBatis-Plus`
+
+- 条件构造器：`QueryWrapper`
+
+  > 继承自 AbstractWrapper ,自身的内部属性 **entity 也用于生成 where 条件**
+  > 及 LambdaQueryWrapper, 可以通过 new QueryWrapper().lambda() 方法获取
+
+  **例子**
+
+  ```java
+  @GetMapping("/user/{userId}/")
+  public User getUser(@PathVariable int userId) {
+    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+    queryWrapper.eq("id", 1);  // 可以在官网查，有很多操作，比如lt gt ge le
+    													// 同时支持连贯操作: ge().le()，实现>= && <= 
+    return userMapper.selectOne(queryWrapper);
+  }
+  ```
+
+- `Mapper`
+
+  **例子**
+
+  ```java
+  @GetMapping("/user/add/{userId}/{username}/{rating}")  // 插入和删除一般是使用Post
+  public String insertUser(@PathVariable int userId,
+                           @PathVariable String username,
+                           @PathVariable int rating) {
+    User user = new User(userId, username, rating);
+    userMapper.insert(user);
+    return "add successfully";
+  }
+  ```
+
+---
+
+###### 5. **用户认证**：权限判断
+
+- 加了spring-boot-starter-security依赖之后就帮我们实现了很多页面。没有登录时登陆页面的用户名是user，密码在项目运行里有写
+
+  ![the_second_lesson_judgement](../src/the_second_lesson_login.png)
+
+  ![the_second_lesson_judgement](../src/the_second_lesson_logout.png)
+
+- **传统的用户登陆方式**
+
+  1. 正常登陆：`Client --> SpringBoot(server) --> mysql`，然后结果返回`mysql --> SpringBoot(server) --> Client`
+  2. 正常登陆完之后，`Springboot`生成一个随机字符串`sessionId`发送给`Client`，`Client`将`sessionId`存到`cookie`，一般这个`sessionId`会存在`mysql`或者`redis`里
+  3. 用户再次请求时，`Client`会发送`cookie`，`springboot`会取`cookie`中的`sessionId`值，然后取跟`mysql`匹配，同时看看`sessionId`有没有过期，`mysql`中存的不只是`sessionId`，还有比如用户名之类的数据
+  4. 如果`sessionId`过期了，那么`server`就会发送一个登陆页面给`Client`
+
+  ![the_second_lesson_judgement](../src/the_second_lesson_traditionalLogin.png)
+
+- 将spring-security对接数据库，不再限于只有一个user登陆
+
+  1. 实现service.impl.UserDetailsServiceImpl类，实现UserDetailsService接口
+
+  2. 重写接口的方法：通过username返回一个**UserDetails**，里面包含用户名和密码
+
+     ```java
+     @Override
+     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+         QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+         queryWrapper.eq("username", username);
+         User user = userMapper.selectOne(queryWrapper);
+         if (user == null) {
+           throw new RuntimeException("用户不存在");
+         }
+         return new UserDetailsImpl(user);
+       }
+     ```
      
+  3. 在service.utils下创建UserDetailsImpl实现UserDetails接口，同时有很多is...方法，根据自己的需要改为true还是false
+  
+     ```java
+     @Data
+     @NoArgsConstructor
+     @AllArgsConstructor
+     public class UserDetailsImpl implements UserDetails {
+     
+         private User user;
+     
+         @Override
+         public Collection<? extends GrantedAuthority> getAuthorities() {
+             return null;
+         }
+     
+         @Override
+         public String getPassword() {
+             return user.getPassword();
+         }
+     
+         @Override
+         public String getUsername() {
+             return user.getUsername();
+         }
+     
+         @Override
+         public boolean isAccountNonExpired() {
+             return true;
+         }
+     
+         @Override
+         public boolean isAccountNonLocked() {
+             return true;
+         }
+     
+         @Override
+         public boolean isCredentialsNonExpired() {
+             return true;
+         }
+     
+         @Override
+         public boolean isEnabled() {
+             return true;
+         }
+     }
      ```
+  
+  4. 这个时候去验证用户名密码，会报一个错：There is no PasswordEncoder mapped for the id "null"，这是因为密码是使用的明文传输，可以去用户的密码前缀加上{noop}，springboot在去判断密码的时候就知道这个是明文密码
+  
+- **加密**
 
-4. `MyBatis-Plus`
+  ```mermaid
+  graph LR;
+  
+  a(加密前的字符串) --容易转换--> b(加密后的字符串)
+  b(加密后的字符串) --不容易转换--> a(加密前的字符串) 
+  ```
 
-   - 条件构造器：`QueryWrapper`
-
-     > 继承自 AbstractWrapper ,自身的内部属性 **entity 也用于生成 where 条件**
-     > 及 LambdaQueryWrapper, 可以通过 new QueryWrapper().lambda() 方法获取
-
-     **例子**
+  1. 创建config.SecurityConfig类，spring-security会调用这个方法，因为有注解，然后会返回某种加密方式，跟前面的报错对应上。PasswordEncoder应该是一个接口，BCryptPasswordEncoder应该是实现了PasswordEncoder接口，可以查看里面有很多API
 
      ```java
-     @GetMapping("/user/{userId}/")
-     public User getUser(@PathVariable int userId) {
-       QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-       queryWrapper.eq("id", 1);  // 可以在官网查，有很多操作，比如lt gt ge le
-       													// 同时支持连贯操作: ge().le()，实现>= && <= 
-       return userMapper.selectOne(queryWrapper);
+     @Configuration
+     @EnableWebSecurity
+     public class SecurityConfig {
+     
+         @Bean
+         public PasswordEncoder passwordEncoder() {
+             return new BCryptPasswordEncoder();
+         }
      }
      ```
 
-   - `Mapper`
-
-     **例子**
+  2. 测试BCryptPasswordEncoder的加密，加密的字符串不是每一次都一样的，但是使用matches()是可以匹配上的
 
      ```java
-     @GetMapping("/user/add/{userId}/{username}/{rating}")  // 插入和删除一般是使用Post
-     public String insertUser(@PathVariable int userId,
-                              @PathVariable String username,
-                              @PathVariable int rating) {
-       User user = new User(userId, username, rating);
-       userMapper.insert(user);
-       return "add successfully";
+     @Test
+     	void contextLoads() {
+     		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+     		System.out.println(passwordEncoder.encode("zyc")); 
+     		System.out.println(passwordEncoder.encode("zyc"));
+     		System.out.println(passwordEncoder.matches("zyc", "$2a$10$t/g4ReQX1PXS6R15qPlqTOmzK4DB1epTUKSrWzB7ezKgF3LtJUBkK"));
+     		System.out.println(passwordEncoder.matches("zyc", "$2a$10$rP/xwjlFw62wRmCu26IKOO67jkz99Dzok7xaIonbsE5z3Z8Wrthwa"));
+     	}
+     ```
+
+  3. 改善userController里的insertUser方法，存储加密后的密码
+
+     ```java
+     @GetMapping("/user/add/{userId}/{username}/{rating}")
+     public String insertUser(@PathVariable int userId, @PathVariable String username, @PathVariable String password) {
+          PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+          String encodeedPassword = passwordEncoder.encode(password);
+          User user = new User(userId, username, encodeedPassword);
+          userMapper.insert(user);
+          return "add successfully";
+      }
+     ```
+
+
+---
+
+##### 第二节课
+
+###### 1. **公开url与授权url**
+
+- **sesson模式的公开url与授权url**
+
+  1. 在公开的login页面登陆，会生成一个sessionID，将sessionID的与用户的映射存到内存或者数据库里，
+
+  2. 在授权的url页面中，会判断sessionID是否有效
+
+  3. 将User提取到上下文中：在controller中通过某种接口将user提取出来
+
+  4. 可以正常访问
+
+     ![the_forth_lesson_publicurl](../src/the_forth_lesson_publicurl.png)
+     
+     -----
+
+- **跨域下的公开与授权url：jwt-toekn验证**
+
+  1. 在多台服务器下使用使用session的时候需要将多份sesson复制到多台服务器上，比较麻烦
+
+  2. jwt可以很容易跨域，并且不需要在多台服务器上存储：只要使用一个令牌
+
+  3. 在客户端存的session变成jwt-token
+
+  4. 
+
+  5. 在服务端存userId，密钥，userId + 密钥 --> 加密后的字符串，这是不可逆的，将userId + 加密后的字符串作为jwt-token，如何在客户端串改userId，因为密钥用户不知道，因此无法认证成功
+
+     ![the_forth_lesson_publicurl](../src/the_forth_lesson_jwttoken.png)
+
+  6. 减少jwt-token被窃取的做法：设置两个token为access-token寿命为5mintus、refresh-token寿命为14天，在使用get明文请求的时候，使用access-token；使用post请求就用refresh-token去刷新access-toen
+
+  ----
+
+###### 2. **配置**Jwt
+
+1. **实现utils.JwtUtil类，为jwt的工具类，用来创建、解析jwt token**
+
+```java
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.Date;
+import java.util.UUID;
+
+@Component
+public class JwtUtil {
+    public static final long JWT_TTL = 60 * 60 * 1000L * 24 * 14;  // 有效期14天
+  	// 密钥要足够长，随机
+    public static final String JWT_KEY = "SDFGjhdsfalshdfHFdsjkdsfds121232131afasdfac";
+
+    public static String getUUID() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+    public static String createJWT(String subject) {
+        JwtBuilder builder = getJwtBuilder(subject, null, getUUID());
+        return builder.compact();
+    }
+  // 将一个字符串+密钥+有效期生成一个加密后的字符串
+    private static JwtBuilder getJwtBuilder(String subject, Long ttlMillis, String uuid) {
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        SecretKey secretKey = generalKey();
+        long nowMillis = System.currentTimeMillis();
+        Date now = new Date(nowMillis);
+        if (ttlMillis == null) {
+            ttlMillis = JwtUtil.JWT_TTL;
+        }
+
+        long expMillis = nowMillis + ttlMillis;
+        Date expDate = new Date(expMillis);
+        return Jwts.builder()
+                .setId(uuid)
+                .setSubject(subject)
+                .setIssuer("sg")
+                .setIssuedAt(now)
+                .signWith(signatureAlgorithm, secretKey)
+                .setExpiration(expDate);
+    }
+
+    public static SecretKey generalKey() {
+        byte[] encodeKey = Base64.getDecoder().decode(JwtUtil.JWT_KEY);
+        return new SecretKeySpec(encodeKey, 0, encodeKey.length, "HmacSHA256");
+    }
+	// 将令牌里的userid解析出来
+    public static Claims parseJWT(String jwt) throws Exception {
+        SecretKey secretKey = generalKey();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody();
+    }
+}
+
+```
+
+2. **配置三个依赖**
+
+3. **实现config.filter.JwtAuthenticationTokenFilter类，用来验证jwt-token，如果验证成功，将User信息注入到上下文中**
+
+   ```java
+   import com.kob.backend.mapper.UserMapper;
+   import com.kob.backend.pojo.User;
+   import com.kob.backend.service.impl.utils.UserDetailsImpl;
+   import com.kob.backend.utils.JwtUtil;
+   import io.jsonwebtoken.Claims;
+   import org.jetbrains.annotations.NotNull;
+   import org.springframework.beans.factory.annotation.Autowired;
+   import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+   import org.springframework.security.core.context.SecurityContextHolder;
+   import org.springframework.stereotype.Component;
+   import org.springframework.util.StringUtils;
+   import org.springframework.web.filter.OncePerRequestFilter;
+   
+   import javax.servlet.FilterChain;
+   import javax.servlet.ServletException;
+   import javax.servlet.http.HttpServletRequest;
+   import javax.servlet.http.HttpServletResponse;
+   import java.io.IOException;
+   
+   @Component
+   public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
+       @Autowired
+       private UserMapper userMapper;
+   
+       @Override
+       protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+           String token = request.getHeader("Authorization");
+   
+           if (!StringUtils.hasText(token) || !token.startsWith("Bearer ")) {
+               filterChain.doFilter(request, response);
+               return;
+           }
+   
+           token = token.substring(7);
+   
+           String userid;
+           try {
+               Claims claims = JwtUtil.parseJWT(token);
+               userid = claims.getSubject();
+           } catch (Exception e) {
+               throw new RuntimeException(e);
+           }
+   
+           User user = userMapper.selectById(Integer.parseInt(userid));
+   
+           if (user == null) {
+               throw new RuntimeException("用户名未登录");
+           }
+   
+           UserDetailsImpl loginUser = new UserDetailsImpl(user);
+           UsernamePasswordAuthenticationToken authenticationToken =
+                   new UsernamePasswordAuthenticationToken(loginUser, null, null);
+   
+           SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+   
+           filterChain.doFilter(request, response);
+       }
+   }
+   ```
+
+4. **配置`config.SecurityConfig`类，放行登陆、注册等接口**
+
+   ```java
+   import com.kob.backend.config.filter.JwtAuthenticationTokenFilter;
+   import org.springframework.beans.factory.annotation.Autowired;
+   import org.springframework.context.annotation.Bean;
+   import org.springframework.context.annotation.Configuration;
+   import org.springframework.http.HttpMethod;
+   import org.springframework.security.authentication.AuthenticationManager;
+   import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+   import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+   import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+   import org.springframework.security.config.http.SessionCreationPolicy;
+   import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+   import org.springframework.security.crypto.password.PasswordEncoder;
+   import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+   
+   @Configuration
+   @EnableWebSecurity
+   public class SecurityConfig extends WebSecurityConfigurerAdapter {
+       @Autowired
+       private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
+   
+       @Bean
+       public PasswordEncoder passwordEncoder() {
+           return new BCryptPasswordEncoder();
+       }
+   
+       @Bean
+       @Override
+       public AuthenticationManager authenticationManagerBean() throws Exception {
+           return super.authenticationManagerBean();
+       }
+   
+       @Override
+       protected void configure(HttpSecurity http) throws Exception {
+           http.csrf().disable()
+                   .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                   .and()
+                   .authorizeRequests()
+             // *这段代码比较关键，公开url，可以随意添加
+                   .antMatchers("/user/account/token/", "/user/account/register/").permitAll()
+                   .antMatchers(HttpMethod.OPTIONS).permitAll()
+                   .anyRequest().authenticated();
+   
+           http.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+       }
+   }
+   ```
+
+   -----
+
+###### 3. **编写API**
+
+1. **将数据库中的id域变为自增、pojo.User类中添加注解：@TableId(type = IdType.AUTO)**
+
+   -----
+
+2. **实现/user/account/token/：验证用户名密码，验证成功后返回jwt token（令牌）**
+
+   - 创建service.user.account.LoginService
+
+     ```java
+     public interface LoginService {
+         public Map<String, String> getToken(String username, String password) ;
      }
+     ```
+
+   - 实现service.impl.user.account.LoginServiceImpl
+
+     `UsernamePasswordAuthenticationToken`：加密名文的用户名和密码
+
+     `Authentication`：验证用户密码
+
+     `JwtUtil.createJWT`：生成jwt-token，可以看jwt-token的流程图
+
+     ```java
+     @Service
+     public class LoginServiceImpl implements LoginService {
+         @Autowired
+         private AuthenticationManager authenticationManager;
+     
+         @Override
+         public Map<String, String> getToken(String username, String password) {
+            //将数据库中明文的用户名和密码封装成加密后的
+             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
+                     = new UsernamePasswordAuthenticationToken(username, password); 
+             // 验证账号密码是否登陆 加有个API：.var能自动生成变量类型和变量名
+             // 如果登陆失败，会自动处理
+             Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+             // 登陆成功，获取用户, 过程可以参考spring-security对接数据库那一块
+             UserDetailsImpl loginUser = (UserDetailsImpl) authenticate.getPrincipal();
+             User user = loginUser.getUser();
+     
+             // 将userId封装成一个令牌，也就是jwt token
+             String jwt = JwtUtil.createJWT(user.getId().toString());
+     
+             Map<String, String> map = new HashMap<>();
+             // 这里是看习惯。把所有信息都存到error_message里
+             map.put("error_message", "success");
+             map.put("token", jwt);
+             return map;
+         }
+     }
+     ```
+
+   - 实现Controller类的方法，使用Post请求
+
+     ```java
+     @Autowired
+     private LoginService loginService;
+     
+     @PostMapping("/user/account/token/")
+     public Map<String, String> getToken(@RequestParam Map<String, String> map) {
+         String username = map.get("username");
+         String password = map.get("password");
+         return loginService.getToken(username, password);
+     }
+     ```
+
+   - 调试，在前端内使用`ajax`调试
+
+     ```js
+     setup() {
+       $.ajax ({
+         url: "http://127.0.0.1:3000/user/account/token/",
+         type: "POST",
+         data: {
+           username: "zyc",
+           password: "zyc"
+         },
+         success: function(resq) {
+           console.log("success");
+           console.log(resq);
+         },
+         error: function() {
+           console.log("error");
+         }
+       })
+     }
+     ```
+
+   - token可以在[jwtio](https://jwt.io/)解析出userId
+
+   ------
+
+3. **实现/user/account/info/：根据令牌返回用户信息**
+
+   - 获取了jwt-token之后，user就被放在上下文，从上下文中提取user的信息
+
+   - 在inforServiceImpl实现getInfo。这里有几个要**注意的点**
+
+     1. `UsernamePasswordAuthenticationToken`继承`Authentication`，所以在前面的getToken方法中使用了`.getPrincipal()`，这是`Authentication`的方法，自然`UsernamePasswordAuthenticationToken`也能使用
+     2. `getAuthentication()`得到的类型是`Authentication`，看源码的
+
+     ```java
+     @Override
+     public Map<String, String> getInfo() {
+         UsernamePasswordAuthenticationToken authentication = 
+         (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+         UserDetailsImpl loginUser = (UserDetailsImpl) authentication.getPrincipal();
+         User user = loginUser.getUser();
+         Map<String, String> map = new HashMap<>();
+         map.put("error_message", "success");
+         map.put("id", user.getId().toString());
+         map.put("username", user.getUsername());
+         map.put("photo", user.getPhoto());
+         return map;
+         }
+     ```
+
+   - 实现 InfoController 的方法，使用get请求
+
+     ```java
+     @Autowired
+     private InfoService infoService;
+     
+     @GetMapping("/user/account/info/")
+     public Map<String ,String> getInfo() {
+         return infoService.getInfo();
+     }
+     ```
+
+   - 调试，需要发送`headers`，在`config.filter.JwtAuthenticationTokenFilter`里有写，`Bearer`
+
+     ```js
+     $.ajax({
+         url: "http://127.0.0.1:3000/user/account/info/",
+         type: "GET",
+         headers: {
+           Authorization: "Bearer "+ "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIzYTA5N2Q0MjAyODI0YWQ4ODVlMzJlNjRiY2Y4NmUzNSIsInN1YiI6IjEiLCJpc3MiOiJzZyIsImlhdCI6MTY2Mzc0MTk1MiwiZXhwIjoxNjY0OTUxNTUyfQ.YOif0YbePfItzV3n-GZJi_-j_J7Uz0rC6o8NZxQFswA",
+         },
+         success: function(resp) {
+           console.log("infoSuccess");
+           console.log(resp);	
+         },
+         error: function(resp) {
+           console.log("infoError")
+           console.log(resp);
+         },
+       })
+     ```
+
+   ----
+
+4. **实现 /user/account/register/ ：注册账号**
+
+   - 创建`service.user.account.RegisterService`
+
+     ```java
+     public interface RegisterService {
+       	public Map<String, String> register(String username, String password, String confirmedPassword);
+     }	
+     ```
+
+   - 实现`service.impl.user.accouont.RegisterServceImpl`
+
+     ```java
+     @Service
+     public class RegisterServiceImpl implements RegisterService {
+     
+         @Autowired
+         private UserMapper userMapper;
+     
+         @Autowired
+         private PasswordEncoder passwordEncoder;
+     
+         @Override
+         public Map<String, String> register(String username, String password, String confirmedPassword) {
+             Map<String, String> map = new HashMap<>();
+     
+             if (username == null) {
+                 map.put("error_message", "用户名不能为空");
+                 return map;
+             }
+             username = username.trim();
+             if (username.length() == 0) {
+                 map.put("error_message", "用户名不能为空");
+                 return map;
+             }
+             if (username.length() > 100) {
+                 map.put("error_message", "用户名过长");
+                 return map;
+             }
+             if (password == null || confirmedPassword == null) {
+                 map.put("error_message", "密码不能为空");
+                 return map;
+             }
+             if (password.length() == 0 || confirmedPassword.length() == 0) {
+                 map.put("error_message", "密码不能为空");
+                 return map;
+             }
+             if (password.length() > 100 || confirmedPassword.length() > 100) {
+                 map.put("error_message", "密码过长");
+                 return map;
+             }
+             if (!password.equals(confirmedPassword)) {
+                 map.put("error_message", "密码不一致");
+                 return map;
+             }
+             // 判断用户名是否存在
+             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+             queryWrapper.eq("username", username);
+             // 查user也可以，命名跟下面user不冲突就行
+             List<User> users = userMapper.selectList(queryWrapper);
+             if (!users.isEmpty()) {
+                 map.put("error_message", "用户已存在");
+             }
+     
+             // 加密密码
+             String encodedPassword = passwordEncoder.encode(password);
+           	// 照片链接先固定
+             String photo = "https://www.acwing.com/user/profile/index/";
+             User user = new User(null, username, encodedPassword, photo);
+             userMapper.insert(user);
+             map.put("error_message", "success");
+             return map;
+         }
+     }
+     ```
+
+   - **实现RegisterController的方法，使用Post请求**
+
+     ```java
+     @Autowired
+     private RegisterService registerService;
+     
+     @PostMapping("/user/account/register/")
+     public Map<String, String> register(@RequestParam Map<String, String> map) {
+         String username = map.get("username");
+         String password = map.get("password");
+         String confirmedPassword = map.get("confirmedPassword");
+         return registerService.register(username, password, confirmedPassword);
+     }
+     ```
+
+   - 调试
+
+     ```js
+     $.ajax({
+         url: "http://127.0.0.1:3000/user/account/register/",
+         type: "POST",
+         data: {
+           username: "zz",
+           password: "123",
+           confirmedPassword: "123",
+         },
+         success: function(resp) {
+           console.log(resp);
+         },
+         error: function(resp) {
+           console.log("error");
+           console.log(resp);
+         }
+     })
+     ```
+
+-----
+
+###### 4. 前端登陆页面
+
+1. **创建`user/account/UserAccountLoginView.vue`，前面两个`div`是`bootstarp`的`grid`**
+
+   ```vue
+   <template>
+       <ContentField >
+           <div class="row justify-content-md-center">
+               <div class="col-3">
+                   <form>
+                       <div class="mb-3">
+                           <label for="username" class="form-label">用户名</label>
+                           <input type="text" class="form-control" id="username" placeholder="请输入用户名">
+                       </div>
+                       <div class="mb-3">
+                           <label for="password" class="form-label">密码</label>
+                           <input type="password" class="form-control" id="password" placeholder="请输入密码">
+                       </div>
+                       <button type="submit" class="btn btn-primary">提交</button>
+                   </form>
+               </div>
+           </div>
+       </ContentField>
+   </template>
+   
+   <script>
+   import ContentField from "../../../components/ContentField"
+   
+   export default {
+       components: {
+           ContentField
+       }
+   }
+   </script>
+   
+   <style scoped></style>
+   ```
+
+   ----
+
+2. **在`router/index.js`添加组件的路由**
+
+   ```js
+   import UserAccountLoginView from "../views/user/account/UserAccountLoginView";
+   const routes = [
+     {
+       name: "user_account_login",
+       path: "/user/account/login/",
+       component: UserAccountLoginView
+     },
+   ```
+
+   ----
+
+3. **将用户信息存成全局的，使用==vuex==**
+
+   - 创建`store/user.js`
+
+   ```js
+   import $ from "jquery";
+   
+   export default {
+       state: {
+           id : "",
+           username: "",
+           photo: "",
+           token: "",
+           is_login: "false",
+       },
+       mutations: {  //mutations 用来修改数据的
+           updateUser(state, user) {
+               state.id = user.id;
+               state.username = user.username;
+               state.photo = user.photo;
+               state.is_login = user.is_login;
+           },
+           updateToken(state, token) {
+               state.token = token;
+           }
+       },
+       actions: {
+         // 使用mutation修改数据
+           login(context, data) {
+               $.ajax({
+                   url: "http://127.0.0.1:3000/user/account/token/",
+                   type: "POST",
+                   data: {
+                       username: data.username,
+                       password: data.password,
+                   },
+                   success: function(resp) {
+                       // 调用mutations的函数需要用commit("function")
+                       if (resp.error_message === "success") {
+                           context.commit("updateToken", data.token);
+                           data.success(resp);
+                       } else {
+                           data.error(resp);
+                       }
+                   },
+                   error: function(resp) {
+                       data.error(resp);
+                   }
+               })
+           }
+       },
+       modules: {
+       }
+   }
+   ```
+
+   ​	在`store/index.js`的`moduels`添加上
+
+   ```js
+   import { createStore } from 'vuex'
+   import ModuleUser from './user'
+   
+   export default createStore({
+     state: {
+     },
+     mutations: {
+     },
+     actions: {
+     },
+     modules: {
+       user: ModuleUser,
+     }
+   })
+   ```
+
+   - 完善`UserAccountLoginView.vue`的`html`部分，验证用户名密码，获取token。登陆成功跳转到首页，用router.push
+
+     ```vue
+     <template>
+         <ContentField>
+             <div class="row justify-content-md-center">
+                 <div class="col-3">
+                     <!-- prevnet 阻止默认行为 -->
+                     <form @submit.prevent="login" >  
+                         <div class="mb-3">
+                             <label for="username" class="form-label">用户名</label>
+                             <!-- 跟ref的username绑定起来 -->
+                             <input v-model="username" type="text" class="form-control" id="username" placeholder="请输入用户名">
+                         </div>
+                         <div class="mb-3">
+                             <label for="password" class="form-label">密码</label>
+                             <input v-model="password" type="password" class="form-control" id="password" placeholder="请输入密码">
+                         </div>
+                         <div class="error-message">{{error_message}}</div>
+                         <button type="submit" class="btn btn-primary">提交</button>
+                     </form>
+                 </div>
+             </div>
+         </ContentField>
+     </template>
+     
+     <script>
+     import ContentField from "../../../components/ContentField"
+     import { useStore } from "vuex";
+     import { ref } from "vue";
+     import router from "../../../router/index"
+     
+     export default {
+         components: {
+             ContentField
+         },
+         setup() {
+             const store = useStore();
+             let username = ref('');
+             let password = ref('');
+             let error_message = ref('');
+             
+             const login = () => {
+             	  // 清空信息
+                 error_message.value = "";
+                 //要使用actions里的函数需要使用dispatch
+                 // login后面就是data对象，在actions里面是使用data来调用success和error
+                 store.dispatch("login", {
+                     username: username.value,
+                     password: password.value,
+                     success: function() {
+                         // 跳转到name为home的页面
+                         router.push({ name: 'home'});
+                     },
+                     error: function() {
+                         error_message.value = "用户名或者密码错误";
+                     }
+                 })
+             }
+             return {
+                 username,
+                 password,
+                 error_message,
+                 login,
+             }
+         }
+     }
+     </script>
+     
+     <style scoped>
+     .error-message {
+         color: red;
+     }
+     </style>
      ```
 
    ---
 
-5. **用户认证**：权限判断
+4. **给后端发送请求，获取用户名、头像、id**
 
-   - 加了spring-boot-starter-security依赖之后就帮我们实现了很多页面。没有登录时登陆页面的用户名是user，密码在项目运行里有写
 
-     ![the_second_lesson_judgement](../src/the_second_lesson_login.png)
 
-     ![the_second_lesson_judgement](../src/the_second_lesson_logout.png)
 
-   - **传统的用户登陆方式**
 
-     1. 正常登陆：`Client --> SpringBoot(server) --> mysql`，然后结果返回`mysql --> SpringBoot(server) --> Client`
-     2. 正常登陆完之后，`Springboot`生成一个随机字符串`sessionId`发送给`Client`，`Client`将`sessionId`存到`cookie`，一般这个`sessionId`会存在`mysql`或者`redis`里
-     3. 用户再次请求时，`Client`会发送`cookie`，`springboot`会取`cookie`中的`sessionId`值，然后取跟`mysql`匹配，同时看看`sessionId`有没有过期，`mysql`中存的不只是`sessionId`，还有比如用户名之类的数据
-     4. 如果`sessionId`过期了，那么`server`就会发送一个登陆页面给`Client`
+1. 
 
-     ![the_second_lesson_judgement](../src/the_second_lesson_traditionalLogin.png)
 
-   - 将spring-security对接数据库，不再限于只有一个user登陆
 
-     1. 实现service.impl.UserDetailsServiceImpl类，实现UserDetailsService接口
 
-     2. 重写接口的方法：通过username返回一个**UserDetails**，里面包含用户名和密码
 
-        ```java
-        @Override
-        public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-            QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
-            queryWrapper.eq("username", username);
-            User user = userMapper.selectOne(queryWrapper);
-            if (user == null) {
-              throw new RuntimeException("用户不存在");
-            }
-            return new UserDetailsImpl(user);
-          }
-        ```
-        
-     3. 在service.utils下创建UserDetailsImpl实现UserDetails接口，同时有很多is...方法，根据自己的需要改为true还是false
-     
-        ```java
-        @Data
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public class UserDetailsImpl implements UserDetails {
-        
-            private User user;
-        
-            @Override
-            public Collection<? extends GrantedAuthority> getAuthorities() {
-                return null;
-            }
-        
-            @Override
-            public String getPassword() {
-                return user.getPassword();
-            }
-        
-            @Override
-            public String getUsername() {
-                return user.getUsername();
-            }
-        
-            @Override
-            public boolean isAccountNonExpired() {
-                return true;
-            }
-        
-            @Override
-            public boolean isAccountNonLocked() {
-                return true;
-            }
-        
-            @Override
-            public boolean isCredentialsNonExpired() {
-                return true;
-            }
-        
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-        }
-        ```
-     
-     4. 这个时候去验证用户名密码，会报一个错：There is no PasswordEncoder mapped for the id "null"，这是因为密码是使用的明文传输，可以去用户的密码前缀加上{noop}，springboot在去判断密码的时候就知道这个是明文密码
-     
-   - **加密**
 
-     ```mermaid
-     graph LR;
-     
-     a(加密前的字符串) --容易转换--> b(加密后的字符串)
-     b(加密后的字符串) --不容易转换--> a(加密前的字符串) 
-     ```
 
-     1. 创建config.SecurityConfig类，spring-security会调用这个方法，因为有注解，然后会返回某种加密方式，跟前面的报错对应上。PasswordEncoder应该是一个接口，BCryptPasswordEncoder应该是实现了PasswordEncoder接口，可以查看里面有很多API
 
-        ```java
-        @Configuration
-        @EnableWebSecurity
-        public class SecurityConfig {
-        
-            @Bean
-            public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
-            }
-        }
-        ```
 
-     2. 测试BCryptPasswordEncoder的加密，加密的字符串不是每一次都一样的，但是使用matches()是可以匹配上的
 
-        ```java
-        @Test
-        	void contextLoads() {
-        		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        		System.out.println(passwordEncoder.encode("zyc")); 
-        		System.out.println(passwordEncoder.encode("zyc"));
-        		System.out.println(passwordEncoder.matches("zyc", "$2a$10$t/g4ReQX1PXS6R15qPlqTOmzK4DB1epTUKSrWzB7ezKgF3LtJUBkK"));
-        		System.out.println(passwordEncoder.matches("zyc", "$2a$10$rP/xwjlFw62wRmCu26IKOO67jkz99Dzok7xaIonbsE5z3Z8Wrthwa"));
-        	}
-        ```
 
-     3. 改善userController里的insertUser方法，存储加密后的密码
 
-        ```java
-        @GetMapping("/user/add/{userId}/{username}/{rating}")
-        public String insertUser(@PathVariable int userId, @PathVariable String username, @PathVariable String password) {
-             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-             String encodeedPassword = passwordEncoder.encode(password);
-             User user = new User(userId, username, encodeedPassword);
-             userMapper.insert(user);
-             return "add successfully";
-         }
-        ```
 
-        
 
-6. 
 
----
+
 
 
 
@@ -1218,6 +1945,7 @@ E --> i(Bot的对战记录)
      - `GetMapping`：只映射Get请求。
        - `GetMapping("path/{variable}")`：可以传变量，在方法名里通过注解`@PathVariable`获取变量
      - `PostMapping`：只映射Post请求
+   - `@RequestParam`：获取请求中的参数，可以放在方法的参数列表里
 1. **pojo**
    - `@Data`：自动帮我们填充比如`	tostring, get, set`
    - `@NoArgsConstructor`：填充无参构造函数
@@ -1225,6 +1953,8 @@ E --> i(Bot的对战记录)
 1. **mapper**
    - `@Mapper`
    - `mybatis plus`帮我们实现了很多`sql`语句，因此可以继承`BaseMapper<T>`从而实现`mybaits plus`。其中`T`是指`pojo`层中定义的`class`
+1. **Service**
+   - `@Service`：serviceImpl的注解 
 1. **其他**
    - `Autowired`：如果在某层想要使用其他层的接口或者类
 
@@ -1235,6 +1965,7 @@ E --> i(Bot的对战记录)
 1. `target`目录就是编译完之后的结果
 1. 在pojo层对表中列的属性类型是需要转换成对象类型，比如`int -> Integer`
 1. windows下`alt + insert`，mac下`cmd + n`可以快捷生成一些东西
+1. `service`一般喜欢返回`Map`
 
 
 

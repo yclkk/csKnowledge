@@ -1,3 +1,483 @@
-**曼哈顿距离**：$|x1 - x2| + |y1 - y2|$
+#### **曼哈顿距离**
 
-[]()
+$|x1 - x2| + |y1 - y2|$
+
+[727.菱形](https://www.acwing.com/problem/content/description/729/)
+
+****
+
+#### 约数
+
+约数都是成对出现的，因此可以将暴力枚举优化
+
+> 每次都枚举较小的数，$d <= x / d$   --> $d < \sqrt{x}$。
+>
+> 需要注意的是，当$x$为完全平方数的时候，$x$可以为6，同时 $x / d$ 也为6，因此冲突了，需要作一下判断
+
+[725. 完全数](https://www.acwing.com/problem/content/727/)
+
+---
+
+#### 质数
+
+可以使用约数来实现
+
+[726. 质数](https://www.acwing.com/problem/content/728/)
+
+---
+
+#### 最小公倍数
+
+>  两数乘积 = 最小公倍数 * 最大公约数
+
+---
+
+### 排序
+
+#### 概念
+
+**稳定：**两个相同的值在排序的过程中，它们的位置不发生改变
+
+---
+
+#### 快速排序
+
+>  思想：分治
+>
+> 时间复杂度：平均、最好：$O(nlog_2n)$，最坏：$O(n^2)$
+
+---
+
+**步骤**：
+
+有一个数组`q`，左边界为`l`，右边界为`r`
+
+1. 确定分界点：`q[l]`, `q[l + r / 2]`, `q[r]`, `q[i]`,`i`随机，这个点是可以随意确定的
+2. 调整区间：假设分界点的值为$x$，使得$x$左边的值 $<=x$， 右边的值 $>=x$
+3. 递归处理左右两边
+
+----
+
+**实现：**
+
+1. 额外开两个数组a，b
+2. 遍历 q ，将 $<=x$ 的值放在 a 里，将 $>=x$ 的值放在 b 里
+3. 合并 a，b到 q 中
+
+----
+
+**优化实现：**使用双指针 i = l， j = r
+
+1. i 往右走，直到 `q[i] > x `
+2. j 往左走，直到 `q[j] < x`
+3. `q[i]` 和 `q[j]` 交换，以满足步骤2，同时 i 向右移一位，j 向左移一位
+
+![first_quick](../src/algorithm/first_quick.png)
+
+----
+
+**代码实现：**
+
+```c++
+void quick_sort(int q[], int l, int r) {
+    if (l >= r) return ;
+	// i = l - 1, j = r + 1，是因为双指针是先移动再比较的
+    int x = q[(l + r) / 2], i = l - 1, j = r + 1;
+    while(i < j) {
+        do i++; while(q[i] < x);
+        do j--; while(q[j] > x);
+        if (i < j) swap(q[i], q[j]);
+    }
+  // 取j还是i都可以，就是取i的时候x边界不能为l，取j的时候，x的边界不能为r
+    quick_sort(q, l, j);
+    quick_sort(q, j + 1, r);
+}
+```
+
+---
+
+#### 归并排序
+
+> 思想：分治
+>
+> 时间复杂度：平均、最好、最坏：$O(nlog_2n)$
+
+拆分需要 $log_2n$ 次，每一层都需要计算 $n$ 次
+
+![first_quick](../src/algorithm/first_merge_3.png)
+
+---
+
+**步骤：**
+
+1. 确定分界点：$mid = (l + r) / 2$
+2. 递归排序 left，right
+3. 归并，合二为一
+
+![first_merge_1](../src/algorithm/first_merge_1.png)
+
+----
+
+**归并思想**
+
+1. 有两个排好序的数组 a，b ，也可以看作是q数组的 left 和 right  和一个结果数组 res
+2. i 为 a 的起始， j 为 b 的起始
+3. a[i] 与 b[j] 比较，将小的值放进res。当 i 到终点时，将 b 后面的值直接放进res，当 j 到终点时，同理。
+
+![first_merge_2](../src/algorithm/first_merge_2.png)
+
+----
+
+**代码实现：**
+
+```c++
+void merge_sort(int q[], int l, int r) {
+    if (l >= r) return;
+    int mid = l + r >> 1;
+    merge_sort(q, l, mid), merge_sort(q, mid + 1, r);
+    int i = l, j = mid + 1, k = 0;
+    while (i <= mid && j <= r) {
+        if (q[i] < q[j]) tmp[k ++] = q[i ++];
+        else tmp[k ++] = q[j ++];
+    }
+    while (i <= mid) tmp[k ++] = q[i ++];
+    while (j <= r) tmp[k ++] = q[j ++];
+    
+    for (i = 0, j = l; i < k; i++, j++) {
+        q[j] = tmp[i];
+    }
+}
+```
+
+---
+
+[788. 逆序对的数量](https://www.acwing.com/problem/content/790/)
+
+----
+
+### 二分
+
+> 可以将一个区间一分为二，使得右边满足某个性质，左边不满足整个性质
+>
+> 单调性一定可以二分，但是可以二分的不一定要满足单调性
+
+#### 整数二分
+
+![first_bsearch](../src/algorithm/first_bsearch.png)
+
+**满足左边性质的情况**
+
+1. mid 满足性质，l = mid，
+2. mid 不满足性质，r = mid - 1，因为mid不符合性质可以排除
+
+**模板**
+
+```c++
+int bsearch_1(int l, int r) {
+  while (l < r) {
+    int mid = l + r + 1 >> 1;
+    if (check(mid)) l = mid;
+    else r = mid - 1;
+  }
+}
+```
+
+----
+
+**注意：**mid 需要为 $(l + r + 1) / 2$，因为，当l = r - 1的时候并且`check(mid) = true` 时，$mid = (l + r) / 2 = l$ ，因此 l = mid会造成死循环
+
+**满足右边性质的情况**
+
+1. mid满足性质， r = mid
+2. mid 不满足性质，l = mid + 1，因为 mid 不符合性质
+
+**模板**
+
+```c++
+int bsearch_2(int l, int r) {
+  while (l < r) {
+    int mid = l + r >> 1;
+    if (check(mid)) r = mid;
+    else l = mid + 1;
+  }
+}
+```
+
+-----
+
+#### 浮点数二分
+
+> 没有整数因素影响，可以严格缩小一半
+
+----
+
+当满足 $r-l\leq10^{-6}$ 可以看作是一个点
+
+**为什么要以 $10^{-6}$ 作为判断的点：**
+
+> Math.abs(x)<1e-6其实相当于x == 0
+>
+> 1e-6(也就是0.000001)叫做epslon，用来抵消浮点运算中因为误差造成的相等无法判断的情况。它通常是一个非常小的数字（**具体多小要看你的运算误差**）
+>
+> 比如说因为精度误差，用十进制举例，我们要算1/3+1/3+1/3 == 1（从数学上说，肯定相等），但是因为精度问题，等号左边算出来是0.3333333+0.3333333+0.3333333 = 0.9999999，存在了误差，右边是1.0000000，那么如果直接用 == ，返回false，我们希望它被视作相等。那么就要两数相减取绝对值小于epslon的办法。
+
+**模板：求数x的开根号**
+
+```c++
+int blsearch() {
+  int l = 0, r = x;
+  while (r - l > 1e-8) {  // 看情况调整精度  或者换成for (int i = 0; i < 100; i++)
+    double mid = (l + r) / 2;
+    if (mid * mid >= x) r = mid;
+    else l = mid;  // 没有边界
+  } 
+}
+```
+
+----
+
+### 高精度
+
+> A + B   $A\leq10^6,B\leq10^6$ 
+>
+> A - B    $A\leq10^6, B\leq10^6$  这里跟加法都是值的位数 
+>
+> A * a     len(A)$\leq10^6$, a$\leq10^{-9}$    这里的a是数值
+
+用数组存数字，数组的高位存数字的高位，主要是方便进位，因为往后面加数字容易
+
+![second_highprecision](../src/algorithm/second_highprecision.png)
+
+----
+
+#### 加法
+
+![second_addPrecision](../src/algorithm/second_addPrecision.png)
+
+对于每一位的结果都可以用 A+B+t 来表示，t表示的是进位
+
+```c++
+vector<int> add(vector<int> &A, vector<int> &B) {
+    vector<int> c;
+    int t = 0;
+    for (int i = 0; i < A.size() || i < B.size(); i++) {
+        if (i < A.size()) t += A[i];  // 这里不能用if(A[i])  因为初始化的时候不能保证是0
+        if (i < B.size()) t += B[i];
+        c.push_back(t % 10);
+        t /= 10;
+    }
+    if (t) c.push_back(t);
+    return c;
+}
+```
+
+---
+
+#### 减法
+
+![second_subPrecision](../src/algorithm/second_subPrecision.png)
+
+1. t 表示的是借位，如果有借位那么就需外额外减
+2. A，B代表数，$A_i,B_i$ 代表某一位
+
+```c++
+// 判断A B那个大，A > B, 则sub(A, B); B > A, 则sub(B, A)
+bool cmp(vector<int> &a, vector<int> &b) {
+    if (a.size() != b.size()) return a.size() > b.size();
+    for (int i = a.size() - 1; i >= 0; i--) {
+        if (a[i] != b[i]) return a[i] > b[i];  // 下面是我写的
+        // if (a[i] > b[i]) return true;
+        // else if (a[i] < b[i]) return false;
+    }
+    return true;
+}
+
+vector<int> sub(vector<int> &a, vector<int> &b) {
+    vector<int> c;
+    int t = 0;
+    for (int i = 0; i < a.size(); i++) {
+        t = a[i] - t;
+        if (i < b.size()) t -= b[i];
+        c.push_back((t + 10) % 10);    // (-1+10)%10=9 (1+10)%10=1
+        if (t < 0) t = 1;              // 这里如果写-1，那t就应该是t = a[i] + t
+        else t = 0;
+    }
+    while (c.size() > 1 && c.back() == 0) c.pop_back();  // 当数是003的情况下，需要去掉数组高位的0，如果个位是0，不需要去掉
+    return c;
+}
+```
+
+----
+
+#### 乘法
+
+**步骤：**
+
+1. 数组A存大数字，a为小数字
+2. $A_i \times a$ ：用某一位乘上小数字的整体
+3. $C_i$ 为 $(A_i \times a + t) \% 10$，进位为 $(A_i \times a + t) / 10$
+
+---
+
+```C++
+vector<int> mul(vector<int> &a, int b) {
+    vector<int> C;
+    int t = 0;
+    for (int i = 0; i < a.size() || t; i++) {
+        if (i < a.size()) t += a[i] * b;  // 优化部分 ||t 跟 if 能够代替下面那一句
+        C.push_back(t % 10);
+        t /= 10;
+    }
+    
+   // while (t > 0) {
+    //     C.push_back(t % 10);
+    //     t /= 10;    
+    // }
+    while (C.size() > 1 && C.back() == 0) C.pop_back();  // 在main中判断b是否为0，如果为0就直接输出0，不调用这个函数
+    
+    return C;
+}
+```
+
+----
+
+#### 除法
+
+----
+
+### 前缀和、差分
+
+#### 前缀和
+
+##### 一维前缀和
+
+**定义：**$S_i=a_1+a_2+a_3+...+a_i$
+
+---
+
+**步骤：**
+
+1. 如何求$S_i$：
+   - `for i = 1; i <= n; i++ `
+   - $S[i] = S[i - 1] + a[i]$
+   - $S[0] = 0$
+2. 作用：方便求某一个区间 [l, r] 的和，为$S[r] - S[l-1]$
+
+----
+
+**模板：**
+
+[795. 前缀和](https://www.acwing.com/problem/content/description/797/)
+
+----
+
+##### 二维前缀和
+
+![second_prefixSum](../src/algorithm/second_prefixSum.png)
+
+求$(x_1, y_1)$到$(x_2,y_2)$的前缀和需要先求大的$S_{x2y2}$，再求两个矩形绿色和红色$S_{x_2y_{1-1}}$，$S_{x_{1-1}y_2}$，由于左上角的矩形被减两次，因此需要加上$S_{x_{1-1}y_{1-1}}$，式子为：$S[x2,y2]-S[x2,y1-1]-S[x1-1,y2]+S[x1-1,y1-1]$
+
+**如何求$S[i, j]$**:
+
+1. $S[0,0]=0$
+2. 求$S[i,j - 1]$
+3. 求$S[j-1,i]$
+4. $S[i-1,j-1]$被加了两次
+5. $S[i,j] = S[i,j-1] + S[i-1,j] - S[i - 1,j - 1] + a[i,j]$
+
+----
+
+**模板**
+
+[796. 子矩阵的和](https://www.acwing.com/problem/content/798/)
+
+----
+
+#### 差分
+
+##### 一维差分
+
+> 前缀和的逆运算：其实就是根据前缀和求 b，也就是差分
+
+![second_difference](../src/algorithm/second_difference.png)
+
+
+
+**作用：**通过 b 使得 a 全部 +c 。如果通过普通做法那么就需要暴力遍历a，然后+c
+
+**做法：**
+
+1. 要使得区间 [l, r] 的 $a_l$~$a_r$ + c
+2. $b_l +c$ 使得$a_l$~$a_n$ + c
+3. $b_{r+1}-c$  使得$b_{r+1}$~$b_n$ - c，因为不需要除了[l, r] 之外的数也加上c
+
+**构造差分b**
+
+> $b_1 = a_1$
+>
+> $b_2=a_2-a_1$
+>
+> $b_3=a_3-a_2$
+>
+> $b_n=a_n-a_{n-1}$
+
+ 这样构造可以满足**作用**
+
+----
+
+**实现**
+
+1. 使用a来**初始化**b：是根据**做法**的第2、3步来实现的，对每个区间 [i, i],a[i] 都执行一遍`insert`操作，就可以构造出b
+2. 累加 b 来实现新的前缀和
+
+```c++
+// 根据差分操作来初始化b
+void insert(int l, int r, int c) {
+    b[l] += c;
+    b[r + 1] -= c;
+}
+// 求前缀和
+for (int i = 1; i <= n; i++){ 
+    b[i] += b[i - 1];
+    printf("%d ", b[i]);
+}
+```
+
+---
+
+[797. 差分](https://www.acwing.com/problem/content/799/)
+
+----
+
+##### 二维差分
+
+> 跟二维前缀和比较相似，只不过是由于差分的性质，看起来是倒过来了
+
+![second_twodimensionaldifference](../src/algorithm/second_twoDimensionalDifference.png)
+
+
+
+给$(x_1,y_1)$到$(x_2,y_2)$ 加上c
+
+1. $b[x_1][y_1]+c$
+2. $b[x_1][y_2+c]-c$，绿色部分
+3. $b[x_2+1][y_1]-c$，红色部分
+4. $b[x_2 + 1][y_2 + 1]+c$，因为右下角的部分被减了两次
+
+**插入：**$(i,j)$~$(i,j) + a[i][j]$，原理就是相当于在$(i,j)$ ~ $(i,j)$加上了一个$a[i][j]$
+
+----
+
+[798. 差分矩阵](https://www.acwing.com/problem/content/800/)
+
+### 双指针
+
+> 运用了某种单调的性质将$O(n^2)$优化到$O(n)$
+
+```c++
+for (int i = 0, j = 0; i < n; i++) {
+  while(j < i && check(i, j)) j++;
+  // 具体的逻辑
+}
+```
+

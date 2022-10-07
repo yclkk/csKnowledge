@@ -1,5 +1,7 @@
 1. lodingCache： [LodingCache](https://cloud.tencent.com/developer/article/1965880，内存变量，可以设置刷新的时间
 
+   - .expireAfterWrite()，如果设置了变量，拿就要对该类实现一个接口`InititalizingBean`ß
+
 2. BBIPPublicService： 封装了一些方法
 
 3. 定义了一些参数的时候，要去common.ParamKey.java去声明这个变量，然后再通过Param.Key去引用该变量
@@ -44,18 +46,18 @@
     private Service serice;  // 这里依旧写的interface
     ```
 
-12. **单元测试**
+13. **单元测试**
 
     1. 如果调用地方的接口的方法不是action里面，而是在service里面，那么就不能够使用@Autowired对action进行注入，这样子会报错：调用不到第三接口；   所以在单元测试的时候，要使用service来调用第三方接口，在使用第三方接口的时候需要使用@InjectMocks，例子如下
-    
+
        ```java
        @Autowired
        @InjectMocks
        private ServiceImpl serviceImpl
        ```
-    
+
     2. 
-    
+
     
 
 

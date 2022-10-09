@@ -86,7 +86,7 @@ void quick_sort(int q[], int l, int r) {
     while(i < j) {
         do i++; while(q[i] < x);
         do j--; while(q[j] > x);
-        if (i < j) swap(q[i], q[j]);
+        if (i < j) swap(q[i], q[j]);`
     }
   // 取j还是i都可以，就是取i的时候x边界不能为l，取j的时候，x的边界不能为r
     quick_sort(q, l, j);
@@ -470,6 +470,8 @@ for (int i = 1; i <= n; i++){
 
 [798. 差分矩阵](https://www.acwing.com/problem/content/800/)
 
+----
+
 ### 双指针
 
 > 运用了某种单调的性质将$O(n^2)$优化到$O(n)$
@@ -480,4 +482,157 @@ for (int i = 0, j = 0; i < n; i++) {
   // 具体的逻辑
 }
 ```
+
+----
+
+​	[799. 最长连续不重复子序列](https://www.acwing.com/problem/content/801/)
+
+----
+
+### 位运算
+
+**求 n 的二进制表示中第 k 位是几**
+
+>  15 = $(1111)_2$ ，其中个位的下标是0
+
+1. 先把第k位移到最后一位，n >> k
+2. 看个位是几，x & 1
+
+比如，当n为10时
+
+```c++
+int n = 10;
+for (int k = 3; k >= 0; k--) {
+  cout << (n << k & 1);   
+}
+/*
+	结果为1010
+	流程是这样的，因为要输出高位1，所以k是从3开始，这也是有理由的
+	1010右移3位为1
+	1010右移2位为10
+	1010右移1位为101
+	1010右移0位为1010
+	注意：这四个数字都要输出 个位，因此需要 &1 
+*/
+```
+
+---
+
+**lowbit(x)：返回x的最后一位1**
+
+> x = 1010， lowbit(x) = 10
+>
+> x = 101000， lowbit(x) = 1000
+
+**原理：x & -x**
+
+正数的补码等于本身，负数的补码等于反码+1
+
+> x = 1010...1000
+>
+> -x = ~x + 1
+>
+> ~x = 0101...0111
+>
+> ~x + 1 = 0101...1000
+>
+> x & -x = x & ~x + 1 = 0000...1000
+
+**实现：求 x 中 1 的个数**
+
+> 其实最主要的是x & -x 结果中只有一位1，因此就可以直接减去从而实现了消去 x 的最后一位 1
+
+```c++
+int n = 5;
+while (x) x -= x & -x, res ++; // res为x中1的个数
+```
+
+----
+
+[801. 二进制中1的个数](https://www.acwing.com/problem/content/803/)
+
+---
+
+###  离散化
+
+![third_discretization](../src/algorithm/third_discretization.png)
+
+**定义：**将值映射到从0开始的自然数
+
+当值需要当作下标来做的时候，但是个数只有$10^5$个，因此如果把$0$~$10^9$范围的值作为下标的话显然是不可行的，比如[799. 最长连续不重复子序列](https://www.acwing.com/problem/content/801/)，因为值的范围是$10^5$ ，所以问题不大
+
+---
+
+**步骤**
+
+1. a[] 中可能存在重复元素，需要**去重**
+
+   ```c++
+   // unique会返回没有重复元素的最后一个下标，重复的元素会被丢到后面去，再通过earse就可以删除末尾的重复元素
+   alls.earse(unique(alls.begin(), alls.end()), alls.end()) 
+   ```
+
+   ![third_duplicateRemoval](../src/algorithm/third_duplicateRemoval.png)
+
+2. 如何快速算出 x 离散化后的值，比如说 x=50000，离散化后的值为4，通过**二分**来做，因此需要排序
+
+```c++
+int find(int x) {
+  int l = 0, r = alls.size() - 1;
+  while (l < r) {
+    int mid = l + r << 1;
+    if (alls[mid] >= x) r = mid; // 满足右边性质
+    else l = mid + 1;
+  }
+ 	return r + 1; // 映射的是1 2 3 ... n ，下标从1开始
+}
+```
+
+---
+
+[802. 区间和](https://www.acwing.com/problem/content/804/)
+
+----
+
+### 区间合并
+
+> 有交集的两个区间可以合并成一个大的区间
+
+绿颜色为合并后的区间
+
+![third_sectionMerge](../src/algorithm/third_sectionMerge.png)
+
+**步骤**
+
+![third_sectionMerge1](../src/algorithm/third_sectionMerge1.png)
+
+1. 按区间的左端点排序
+2. 对于[st, ed] 区间来说，第二个区间有三种情况
+   - 区间在[st, ed]内，ed不变
+   - 区间的ed超过[st, ed]，延长[st, ed]，更新为第二种情况的ed
+   - 区间在[st, ed]外，由于是按照左端点排序的，因此后续所有区间都在[st, ed]外，因此[st, ed]即为一种答案，更新[st, ed]为粉颜色的[st, ed]
+
+```c++
+typedef pair<int, int> PII;
+void merge(vector<PII> &segs) {
+    vector<PII> res;
+    sort(segs.begin(), segs.end());
+    int st = -2e9, ed = -2e9;  // 要设置为[负无穷，正无穷]，但是因为l, r的范围是-1e9~1e9，因此负无穷可以设置为-2e9
+    for (auto seg : segs) {
+        if (ed < seg.first) {
+            if (st != -2e9) res.push_back({st, ed});  // 这个区间合并完了，加入到结果中
+            st = seg.first;
+            ed = seg.second;   // 更新[st, ed]
+        } else {
+            ed = max(ed, seg.second);  // 计算ed
+        }
+    }
+    if (st != -2e9) res.push_back({st, ed});  // 最后一个[st, ed]需要加进来，要防止segs为空，所以要if判断一下
+    segs = res;  // 因为要输出segs.size(),传的是引用
+}
+```
+
+
+
+
 

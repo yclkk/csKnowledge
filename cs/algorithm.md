@@ -1,4 +1,4 @@
-#### **曼哈顿距离**
+####  曼哈顿距离
 
 $|x1 - x2| + |y1 - y2|$
 
@@ -31,6 +31,8 @@ $|x1 - x2| + |y1 - y2|$
 >  两数乘积 = 最小公倍数 * 最大公约数
 
 ---
+
+## 基础算法
 
 ### 排序
 
@@ -632,7 +634,358 @@ void merge(vector<PII> &segs) {
 }
 ```
 
+[803. 区间合并](https://www.acwing.com/problem/content/805/)
+
+----
+
+## 数据结构
+
+### 链表
+
+---
+
+#### 单链表
+
+**用途：**
+
+1. 邻接表
+   - 存储图
+   - 存储树
+
+---
+
+**实现：**
+
+![forth_Link](../src/algorithm/forth_Link.png)
+
+$e[i]$ 为节点 $i$ 的值，$ne[i]$ 为节点 $i$ 的next指针是多少，也就是节点 $i$ 指向的值
+
+-----
+
+将某个节点 x 插入到头节点。
+
+1. x节点指向的下一个节点为head指向的下一个节点：`ne[idx] = head;`
+2. head 指向的下一个节点更改为 x：`head = idx;`
+3. 赋值：`e[idx] = x;`
+4. idx 被使用了：`idx++;`
+
+![forth_add_to_head](../src/algorithm/forth_add_to_head.png)
+
+```c++
+const int N = 100010;
+int e[N], ne[N], idx;  // idx表示已经用到了哪个点
+
+void init() {
+	head = -1;  // 头节点指向空节点
+  idx = 0; // 用了0个点
+}
+
+void add_to_head(int x) { // 插入到头节点
+  e[idx] = x;
+  ne[idex] = head;
+  head = idx;      // x是值，idx是节点，比如第一张图中，e[0] = 3，x为3，ne[0] = 1, idx为0，idx++为1
+  idx ++;
+}
+
+void add(int k, int x) { // 将值 x 插入到 k 点之后，原理跟插入头节点差不多
+  e[idx] = x;
+  ne[idx] = ne[k];
+  ne[k] = idx;
+  idx ++;
+}
+
+void remove(int k) { // 将下标是k的后面的节点删掉
+  ne[k] = ne[ne[k]];
+}
+
+void delete(int k) { // 将下标是 k 的节点删掉
+  // 因为没办法拿前一个节点，那就只能拿后面的节点来操作一下，方法就是k节点当作是k后面节点互换，找替身
+	e[k] = e[ne[k]];  // 把k后面的值给k
+  ne[k] = ne[ne[k]]; // 删除k后面的节点，
+  
+  
+}
+```
 
 
 
+---
 
+#### 双链表
+
+> **用途：**优化某些问题
+
+$l[i]$ 表示节点 i 左边的节点， $r[i]$表示节点 i 右边的节点
+
+**初始化：**初始化0（head），1（tail）号点，
+
+![forth_linked](../src/algorithm/forth_linked.png)
+
+**插入节点**
+
+![forth_add](../src/algorithm/forth_add.png)
+
+1. 赋值：`e[idx] = x;`
+2. x 节点的右边节点为 k 的右边节点：`r[idx] = r[k]`
+3. x 节点的左边节点为 k 的右边节点的左边节点：`l[idx] = k;`
+4. k 节点的右边节点的左边节点为 x：`l[r[k]] = idx;`
+5. k 节点的右边节点为 x：`r[k] = idx`     ps：跟第4步不能倒过来，因为这步会影响`r[k]`
+
+```c++
+const int N = 100010;
+int e[N], l[N], r[N], idx;
+
+void init() {
+  r[0] = 1, l[1] = 0;
+  idx = 2;
+}
+
+// 在k的右边插入x，如果要在左边插入，调用add(l[k], x)
+void add(int k, int x) { 
+  e[idx] = x;
+  r[idx] = r[k];
+  l[idx] = k;
+  l[r[k]] = idx;
+  r[k] = idx;
+ 	idx ++;
+}
+// 删除第k个点，画图一目了然，
+void remove(int k) {
+  r[l[k]] = r[k];   
+  l[r[k]] = l[k];
+}
+```
+
+----
+
+### 栈
+
+> 先进后出
+
+```c++
+const int N = 100010;
+int stk[N], tt;
+
+stk[++ tt] = x;  // 入栈
+
+tt--;  // 弹出
+stk[tt] // 栈顶元素
+if (tt > 0) not empyt;
+else empty;
+```
+
+---
+
+#### 单调栈
+
+> 在一个序列中，求每个数左边离它最近且比他小的数在什么位置
+
+**暴力做法**
+
+```c++
+for (int i = 0; i < n; i++) {
+  for (int j = i - 1; j >= 0; j--) {
+    if (a[j] < a[i]) break;
+  }
+}
+```
+
+**单调栈做法**
+
+1. 如果$a[3] \geq a[5]$ ，存在$a[3] < a[i]$ ，所以$a[5] < a[i]$ 因此 5 是答案
+2. 根据上式可以发现一个规律，$x < y ，a[x] \geq a[y] $，这样的逆序对，y是答案，因此存储的是y
+
+```c++
+const int N = 100010;
+int stk[N], tt;
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        int x;
+        cin >> x;
+        while (tt && stk[tt] >= x) tt --;  // 逆序对 删到栈顶
+        if (tt) cout << stk[tt] << " ";   // 存在比x小的
+        else cout << "-1 ";   // 不存在输出- 1
+        stk[++ tt] = x;   // 
+    }
+    return 0;
+}
+```
+
+[830. 单调栈](https://www.acwing.com/problem/content/832/)
+
+---
+
+### 队列
+
+> 先进先出
+
+```c++
+const int N = 10001;
+// 队尾插入元素，队头弹出元素
+int q[N], hh, tt = -1;
+
+q[++ tt] = x;  // 入队
+
+hh++;  // 出队
+
+if (hh <= tt) not empty;
+else empty;
+
+q[hh];   // 取出队头元素
+```
+
+---
+
+#### 单调队列
+
+> 求一个滑动窗口里面的最大值或者最小值
+
+ ![forth_monotonicQueue](../src/algorithm/forth_monotonicQueue.png)
+
+该窗口最小值是 3
+
+**暴力做法**
+
+两层for循环，时间复杂度为$O(nk)$，$n, k \leq 10^6$，时间复杂度太高
+
+**单调队列做法**
+
+![forth_monotonicQueue1](../src/algorithm/forth_monotonicQueue1.png)
+
+1. 思路和单调栈一致，队列里是否有某些元素没有用的，将这些元素删掉，是否会得到单调性
+2. 对于窗口 $[3, -1, -3]$ 来说，3比-3早出现，并且3 > -3，因此它们构成逆序对，在这种情况下，3不可能是答案
+3. 根据2，队列里存储的值是单调递增的，最小值为q[hh]，也就是队头
+4. 如果队头元素超出了滑动窗口的范围，就需要把队头弹出
+
+**输出滑动窗口的最小值**
+
+```c++
+const int N = 1000010;
+int q[N], a[N];
+int hh, tt = -1, k, n;
+
+int main() {
+  scanf("%d", &n, &k);
+  for (int i = 0; i < n; i++) scanf("%d", &a[i]);
+  for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
+      // 判断是否出了滑动窗口
+      if (hh <= tt && i - k + 1 > q[hh]) hh++;
+      //判断逆序对, 末尾出队。 如果要输出最大值，那就写<=
+      while (hh <= tt && a[q[tt]] >= a[i]) tt--;
+      q[++ tt] = i;
+      // 窗口开始的位置是[0,2]
+      if (i >= k - 1) printf("%d ", a[q[hh]]);
+  }
+}
+```
+
+----
+
+### KMP
+
+> 模式串P在字符串S所有出现位置的起始下标
+
+**暴力做法**
+
+```c++
+S[N], P[M]
+for (int i = 1; i <= n; i++) {
+  bool flag = true;
+  for (int j = 1; j <= m; j++) {
+    if (s[i + j - 1] != p[j]) {    // s[i + j - 1]表示从i开始往后匹配j位是否跟p[j]想对应
+   		flag = false;
+      break;
+    }
+  }
+}
+```
+
+---
+
+**优化**
+
+![forth_kmp1](../src/algorithm/forth_kmp1.png)
+
+1. 当 j 移动到粉圆圈时，`s[i + j - 1] != p[j]`，也就是不匹配了
+2. 观察是否可以利用前面利用匹配的字符串来帮助我们少枚举一些
+3. 发现最多可以移动 k 位使得橙色部分的字符串是相等的
+4. 可以得出
+   1. 以某个点位终点的后缀和前缀是相等的，相等的最大长度是多少
+   2. **`next[i] = j`**：表示以 i 位终点长度为 j 的后缀和以 1 为起点的前缀是相等的，即`p[1...j] = p[i + j - 1, j]`
+
+![forth_kmp2](../src/algorithm/forth_kmp2.png)
+
+**操作**
+
+![forth_kmp3](../src/algorithm/forth_kmp3.png)
+
+1. 当 i 遍历到绿圆圈时，发现字符串S跟模式串P不匹配了
+2. 回到优化的思路，需要找到绿线**长度最长**的前缀和后缀相等，也就是next[j]
+3. 所以第二条红线以i - 1为分界点，前面的长度就是next[j]，也就是2. 的前缀和后缀
+4. 当移动到next[j] 之后，再看是否与 s[i] 匹配
+   1. 如果匹配：那么 i 继续往后走
+   2. 如果不匹配：递归调用next[j]，回到步骤2，3，4
+
+**求next的过程**
+
+![forth_kmp4](../src/algorithm/forth_kmp4.png)
+
+> 其实跟前面是类似的，对于模式串P来说也是要去匹配的
+
+1. 看 i 跟P2 的j + 1是否匹配
+   1. 匹配，j往后，i往后
+   2. 不匹配，`j = ne[j]`，因为next求的是匹配长度的最大值
+
+```c++
+#include<iostream>
+
+using namespace std;
+
+const int N = 100010, M = 1000010;
+int n, m;
+char p[N], s[M];
+int ne[N];
+
+int main() {
+    cin >> n >> p + 1 >> m >> s + 1;
+    
+    // 求next的过程
+    for (int i = 2, j = 0; i <= n; i++) {    // ne[1] = 0，只能为0
+        while (j && p[i] != p[j + 1]) j = ne[j];
+        if (p[i] == p[j + 1]) j++;
+        ne[i] = j;
+    }
+    
+    for (int i = 1, j = 0; i <= m; i++) {
+        while (j && s[i] != p[j + 1]) j = ne[j];   // j有路走，并且下一次字符不相等
+        if (s[i] == p[j + 1]) j++;  // 字符匹配上了，j向后走一个位置，i也向后走
+        if (j == n) {     // j走完了，输出匹配的起始位置
+            printf("%d ", i - n);  
+            j = ne[j]; // 要求出所有的下标，需要将j重复赋值去匹配
+        }
+    }
+    return 0;
+}
+```
+
+---
+
+[831. KMP字符串](https://www.acwing.com/problem/content/833/)
+
+----
+
+### Trie
+
+
+
+----
+
+### 并查集
+
+----
+
+### 堆

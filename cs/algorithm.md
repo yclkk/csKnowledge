@@ -375,7 +375,7 @@ vector<int> mul(vector<int> &a, int b) {
 
 ##### 二维前缀和
 
-![second_prefixSum](../src/algorithm/second_prefixSum.png)
+<img src="../src/algorithm/second_prefixSum.png" alt="second_prefixSum" style="zoom:35%;" />
 
 求$(x_1, y_1)$到$(x_2,y_2)$的前缀和需要先求大的$S_{x2y2}$，再求两个矩形绿色和红色$S_{x_2y_{1-1}}$，$S_{x_{1-1}y_2}$，由于左上角的矩形被减两次，因此需要加上$S_{x_{1-1}y_{1-1}}$，式子为：$S[x2,y2]-S[x2,y1-1]-S[x1-1,y2]+S[x1-1,y1-1]$
 
@@ -843,7 +843,7 @@ q[hh];   // 取出队头元素
 
 > 求一个滑动窗口里面的最大值或者最小值
 
- ![forth_monotonicQueue](../src/algorithm/forth_monotonicQueue.png)
+ <img src="../src/algorithm/forth_monotonicQueue.png" alt="forth_monotonicQueue" style="zoom:30%;" />
 
 该窗口最小值是 3
 
@@ -853,7 +853,7 @@ q[hh];   // 取出队头元素
 
 **单调队列做法**
 
-![forth_monotonicQueue1](../src/algorithm/forth_monotonicQueue1.png)
+<img src="../src/algorithm/forth_monotonicQueue1.png" alt="forth_monotonicQueue1" style="zoom:35%;" />
 
 1. 思路和单调栈一致，队列里是否有某些元素没有用的，将这些元素删掉，是否会得到单调性
 2. 对于窗口 $[3, -1, -3]$ 来说，3比-3早出现，并且3 > -3，因此它们构成逆序对，在这种情况下，3不可能是答案
@@ -980,12 +980,244 @@ int main() {
 
 ### Trie
 
+> 高效地存储和查找字符串。集合的数据结构
 
+<img src="../src/algorithm/forth_trie.png" alt="forth_trie" style="zoom:30%;" />
+
+- 存储：以当前节点为结尾的单词是会有一个标记的
+- 查找：如果说存了abc, abcde，结尾的标记是c和e，要查找abcd是否存在，答案是不存在，虽然能找一条路径abcd，但是d没有标记
+
+
+
+```c++
+const int N = 100010;
+int son[N][26], cnt[N], idx; // idx 下标是0的点，既是根节点又是空节点
+char str[N];
+
+void insert(char str[]) {
+    int p = 0; // 从根节点开始
+    for (int i = 0; str[i]; i ++) {
+        int u = str[i] - 'a'; // u: 0~25，代表a~z
+      /*
+        p其实就是idx，跟单链表一样的，用idx标明该点是什么时候插入的。
+        son[p][u]就表示在p点字符为u-'a'
+      */
+        if (!son[p][u]) son[p][u] = ++idx;  // 如果不存在就创建一个点
+        p = son[p][u];  // p就指向了当前的点
+    }
+    cnt[p] ++;  // 标记，以p点结尾的字符串
+}
+
+int query(char str[]) {
+    int p = 0;
+    for (int i = 0; str[i]; i ++) {
+        int u = str[i] - 'a';
+        if (!son[p][u]) return 0;
+        p = son[p][u];
+    }
+    return cnt[p];
+}
+
+```
+
+---
+
+[835. Trie字符串统计](https://www.acwing.com/problem/content/837/)
+
+[143. 最大异或对](https://www.acwing.com/problem/content/145/)
 
 ----
 
 ### 并查集
 
+**作用**
+
+- 将两个集合合并
+- 询问两个元素是否在一个集合当中
+
+---
+
+**暴力做法**
+
+>  有一个数x，y，用集合做法
+
+```c++
+belong[x] = a, belong[y] = a;
+if (belong[x] == belong[y]) // 时间复杂度是O(1)
+```
+
+如果需要合并的话，假设一个集合的数的数量是1000，另一个是2000。需要合并这两个集合。将1000的集合加在2000的后面，最少也要操作1000次。
+
+---
+
+**并查集做法**：能在近乎$O(1)$ 的时间复杂度完成这两个操作
+
+**步骤**
+
+1. 用树的形式来维护所有的集合
+2. 根节点的编号就是当前集合的编号
+3. 对于每个点都存储它的父节点是谁，`p[x]`表示 x 的父节点
+4. 对于每个节点都往上找它的树根
+5. 树根的表示`p[x] = x`，因为根节点x是没有父节点的，那可以用自身表示它的父节点 
+   - `while(p[x] != x) x  = p[x];`
+6. 合并两个集合：`p[x]`是 x 的集合编号，`p[y]`是 y 的集合编号，`p[x] = y`，将 x 集合合并到 y 集合上
+
+![forth_mergeSets](../src/algorithm/forth_mergeSets.png)
+
+**优化：**路径压缩
+
+> `while(p != p[x]) `这部分时间复杂度太高
+
+- 有一个点 x 想往上找根节点，当找到根节点之后，把 x 经过的点都指向根节点
+
+![forth_mergeSets2](../src/algorithm/forth_mergeSets2.png)
+
+```c++
+// 返回x的祖宗节点 + 路径压缩
+int find(int x) {
+  	if (p[x] != x) p[x] = find(p[x]); // 不理解的时候画图看看
+    return p[x];
+}
+int main() {
+    int n, m;
+    scanf("%d%d", &n, &m);
+  	// 每个节点都是在一个单独的集合里
+    for (int i = 0; i < n; i++) p[i] = i;
+    while (m --) {
+        char op[2];
+        int a, b;
+        scanf("%s%d%d", op, &a, &b);
+      /*
+        M为合并操作，
+        a的根节点为find(a), b的根节点为find(b)
+        p[find(a)] 为a的根节点的父节点
+      */
+        if (op[0] == 'M') p[find(a)] = find(b);
+        else {
+          	// 判断是否在一个集合，就看根节点是否相同
+            if (find(a) == find(b)) puts("Yes");
+            else puts("No");
+        }
+    }
+    return 0;
+}
+```
+
+----
+
+[836. 合并集合](https://www.acwing.com/problem/content/838/)
+
+[837. 连通块中点的数量](https://www.acwing.com/problem/content/839/)
+
 ----
 
 ### 堆
+
+**问题**
+
+- 插入一个数：插入到数组末尾，执行up操作，`heap[++size] = x, up(size)`
+- 求集合当中的最小值：`heap[1]`
+- 删除最小值：将最后一个元素替换最小值，然后删掉最后一个元素，`heap[1] = heap[size--], down(1)`
+- 删除任意一个元素：跟删除最小值类似，可以判断之后再做down或者up操作，也可以直接两个都做，`heap[k] = heap[size--], down(k), up(k)`
+- 修改任意一个元素：`heap[k] = x, down(k), up(k)`
+
+<img src="../src/algorithm/forth_heap2.png" alt="forth_heap2" style="zoom:35%;" />
+
+---
+
+**结构：**是一颗完全二叉树
+
+**小根堆：**每个节点的值都$\leq$左右儿子，因此根节点是最小值
+
+**存储：**一维数组存，下标表示 x 为当前节点，2x为左儿子，2x+1为右儿子，因此下标从1开始
+
+<img src="../src/algorithm/forth_heap.png" alt="forth_heap" style="zoom:35%;" />
+
+
+
+- down：把一个数变大了可能需要往下压
+
+- up：把一个数变小了可能需要往上走
+
+- 构建堆：`for(int i = n / 2; i; i--) down(i)`，能将时间复杂度降为n，如果从n开始 i--，那么时间复杂度就是$O(nlog_2n)$ 。
+
+  理由如下：对于树的最后一层节点来说，down操作是没有必要的，因此从倒数第二层开始，除了最后一层的节点数量为$n/2$ ，倒数第二层的节点数量为 $4/n$，对于倒数第二层来说，down的次数为1；倒数第三层，down的次数为2....，这里的次数跟离最后一层的高度有关，因为是down操作。 公式推演如下
+  $$
+  \frac{n}{4}\times1 + \frac{n}{8}\times2 + \frac{n}{16}\times3....\\
+  =>\quad n(\frac{1}{2^2} + \frac{2}{2^3} + \frac{3}{2^4} + \frac{4}{2^5|} + ....)\\
+  令s = \frac{1}{2^2} + \frac{2}{2^3} + \frac{3}{2^4} + \frac{4}{2^5} + ....\\
+  =>\quad 2s = \frac{1}{2} + \frac{2}{2^2} + \frac{3}{2^3} + \frac{4}{2^4} + ....\\
+  错位相减得：2s - s = \frac{1}{2} + \frac{1}{2^2} + \frac{1}{2^3} + \frac{1}{2^4} + \frac{1}{2^5} + ....<1
+  $$
+  因此
+  $$
+  n(\frac{1}{2^2} + \frac{2}{2^3} + \frac{3}{2^4} + \frac{4}{2^5|} + ....)<n
+  $$
+  所以时间复杂度为$O(n)$
+
+```c++
+// 初始化（构建）堆
+ for (int i = n / 2; i; i--) down(i);
+
+void down(int u)
+{
+    int t = u;  // t表示最小值的点的编号
+    if (u * 2 <= size && h[u * 2] < h[t]) t = 2 * u;  // 判断左孩子是否比当前节点小
+    if (u * 2 + 1 <= size && h[u * 2 + 1] < h[t]) t = 2 * u + 1;   // 判断右孩子是否比当前节点小或者左孩子小
+    if (u != t) // 如果u变化了，那么就需要交换值，继续往下走
+    {
+        //swap(h[t], h[u]);
+     	  heap_swap(t, u);
+        down(t);
+    }
+}
+
+void up(int u) {
+  while (u / 2 && h[u / 2] > h[u]) { // u / 2代表父节点，字节点的值小于父节点，需要向上走，直到走到根或者大于父节点为止
+    //swap(h[u / 2], h[u]);
+    heap_swap(u / 2, u);
+    u /= 2;
+  }
+}
+```
+
+---
+
+[838. 堆排序](https://www.youtube.com/watch?v=WlBZD0x1Leo)
+
+[839. 模拟堆](https://www.acwing.com/problem/content/841/)
+
+----
+
+### 哈希表
+
+**内容：**
+
+- 存储结构
+  - 开放寻址法
+  - 拉链法
+- 字符串哈希方式
+
+---
+
+**作用：**把一个比较庞大的值域映射到一个比较小的空间，一般是$0$~$N$，$N:10^5$~$10^6$
+
+---
+
+### stl
+
+---
+
+## 备注
+
+```c++
+/*
+ 	读取字符时，如果用%c的话，可能会读取一些空白字符，因此建议读入字符串
+*/
+char op[2];
+scanf("%s", op);
+op[0];
+strcmp(str1, str2); // 比较两个字符串，相等返回0
+
+```
+

@@ -1202,9 +1202,431 @@ void up(int u) {
 
 **作用：**把一个比较庞大的值域映射到一个比较小的空间，一般是$0$~$N$，$N:10^5$~$10^6$
 
+**做法**
+
+1. 有N（$10^5$）个数，数的范围是$-10^9$~$10^9$ 
+2. 哈希函数$h(x)\in(0,10^5)$
+   - $x \quad mod\quad 10^5$ 
+   - 解决冲突，比如$h(5) = 2, h(10)=2$ 
+
+**解决冲突**
+
+- 拉链法：对于每个槽都是一个单链表，冲突的数插在链表头或者末尾都可以
+  - 时间复杂度：哈希算法是一种期望算法，虽然是拉了个链，但是链的长度是个长度，非常短，因此在一般情况下，哈希表的时间复杂度	都是$O(1)$ 
+  - 添加：求$h(x)$，$x$添加到槽对应的链表上
+  - 查找：求$h(x)$，看$x$是不是在对应的链表上
+  - 删除：不会真的删掉，会用一个布尔变量记录一下
+
+​	![fifth_hash](../src/algorithm/fifth_hash.png)
+
+- 开放寻址法：开一个2～3倍长度的数组，用哈希函数求出位置$h(x)$，如果当前位置有数，那就放在下一个位置
+  - 添加：找到位置$k$，往后直到位置为空，插入
+  - 查找：找到位置$k$
+    - 位置$k$有数并且等于$x$
+    - 位置$k$有数，单不等于$x$，往后查找
+    - 位置$k$没数，$x$不存在
+  - 删除：按查找的的方式找$x$，也是用布尔变量标记一下
+
+![fifth_hash2](../src/algorithm/fifth_hash2.png)
+
 ---
 
-### stl
+**代码**
+
+一般做哈希的时候，$mod$的数要取成质数，并且要离2的整次幂尽可能的远，这样造成的冲突最小
+
+- 拉链法
+
+```c++
+
+const int N  = 100003; // N的范围是0～10^5, 所以可以求一个>10^5的质数
+// 求质数，可以求出100003
+for (int i = 100000;; i ++) 
+{
+    bool flag = true;
+		for (int j = 2; j * j <= i; j++)
+    {
+      	if (i % j == 0)
+      {	
+        	flag = false;
+          break;
+      }
+    }
+  	if (flag) N = i, break;
+}
+
+int h[N], e[N], ne[N], idx;
+memset(h, -1, sizeof h); // h存的头节点，在链表中，头节点初始化为-1
+
+void insert(int x)
+{
+    int k = (x % N + N) % N; // x为负数时，在c++中x%N为负数，所以多加一个N变成正数
+    // 加到链表的头
+    e[idx] = x;
+    ne[idx] = h[k];
+    h[k] = idx;
+    idx ++;
+}
+
+bool find(int x) 
+{
+    int k = (x % N + N) % N;
+    for (int i = h[k]; i != -1; i = ne[i]) 
+    {
+        if (e[i] == x) return true;   
+    }
+    return false;
+}
+```
+
+- 开放寻址法
+
+null的意义：
+
+1. memset(h, 0x3f, sizeof h)，给$h$逐字节添加0x3f，因为int为4字节，因此$h$中的每个数都为0x3f3f3f3f，同时$x$的范围是$-10^9$~$10^9$，0x3f3f3f3f > $10^9$
+2. find的含义，如果找到了x，则返回x所在的位置，h[k] != 0x3f3f3f3f，h[k] == x；如果没找到x，那么h[k] == 0x3f3f3f3f，k的位置刚好是空位，x可以插入在此位置
+
+```c++
+// N的范围和拉链法的一样，求大于200000的质数
+
+const int N = 200003, null = 0x3f3f3f3f;
+
+int h[N];
+memset(h, 0x3f, sizeof h);
+int find(int x) 
+{
+    int k = (x % N + N) % N;
+    while (h[k] != null && h[k] != x) 
+    {
+        k++;
+        if (k == N) k = 0;  // k～N-1都已经被用过了，要重头开始
+    }
+    return k;
+}
+int main() {
+  	int x;
+  	scanf("%d", &x);
+    int k = find(x);
+    if (op[0] == 'I') h[k] = x;
+    else 
+    {
+      if (h[k] != null) printf("Yes\n");
+      else printf("No\n");
+    }  
+}
+
+```
+
+[840. 模拟散列表](https://www.acwing.com/problem/content/842/)
+
+----
+
+#### **字符串前缀哈希算法**
+
+![fifth_stringHash](../src/algorithm/fifth_stringHash.png)
+
+**思路：**
+
+1. 将字符串看成是一个$p$ 进制的数，$(ABCD)_p$ ，假设A是1，B是2，那么$(ABCD)_p=1 \times p^3 + 2 \times p^2 + 3\times p^1 + 4 \times p^0$，就将一个字符串转换成了十进制数字
+2. 由于字符串的长度非常大，因此结果就可能非常大，所以就将$(ABCD)_p \quad mod \quad Q$，$Q$是一个比较小的数，因此就把字符串映射成$0$~$Q-1$
+3. 注意的点
+   - 不能映射成0。如果A映射成0，那么AA也会映射成0，会有冲突
+   - 没有解决冲突，因为假定不存在冲突。
+   - 经验值：$p = 131 或 13331$，$Q=2^{64}$，$99.99\%$的情况不存在冲突
+   - 用unsigned long long 存储$h$，因为这个类型溢出的话就相当于取模$2^{64}$
+4. 预处理$h$， $h(i) = h(i - 1) \times p + str(i)$
+
+**好处**
+
+> 可以利用求出来的前缀哈希，用一个公式计算出来所有字段的哈希
+
+![fifth_stringHash2](../src/algorithm/fifth_stringHash2.png)
+
+要求$(L,R)$ 之间的子串，已知 $h[L-1],h[R]$ 
+
+由于左边是高位，所以
+$$
+h[R]:p^{R-1}+p^{R-2}+...+p^0 \\
+h[L-1]:p^{L-2}+p^{L-3}+...+p^0
+$$
+为了使$h[L-1]$跟$h[R]$对齐，也就是将$h[L-1]$往左移若干位，$h[L-1] \times p^{R-L+1}$
+$$
+h[R]-h[L-1] \times p^{R-L+1} : p^{R-L}+p^{R-L-1}+p^{R-L-2}+...+p^0
+$$
+
+```c++
+typedef unsigned long long ULL;
+const int N = 100010, P = 131;
+
+int n, m;
+ULL h[N], p[N];
+char str[N];
+
+int get(int l, int r) 
+{
+    return h[r] - h[l - 1] * p[r - l + 1];
+}
+
+p[0] = 1; // P ^ 0 = 1 
+for (int i = 1; i <= n; i++) 
+{
+  p[i] = p[i - 1] * P;  // 预处理P^i
+  h[i] = h[i - 1] * P + str[i];  // 字符串哈希
+}
+```
+
+[841. 字符串哈希](https://www.acwing.com/problem/content/843/)
+
+
+---
+
+### STL
+
+#### ***vector***
+
+> 变长数组，倍增的思想
+>
+> 系统为某一程序分配空间时所需要的时间，与空间大小无关，与申请次数有关
+>
+> 倍增：当空间不足时，申请一个$\times2$的空间，将原来数组复制过去。长度为n，申请空间的次数时$O(log_2n)$，额外复制的次数均摊时$O(1)$ 
+
+```c++
+#include<vector>
+
+vector<int> a(n); // 定义长度为n的vector
+vecto<int> a(n, 10); // 定义长度为n的vector，并且定义里面的数都为3
+
+vector<int> a[10]; // 数组：定义10个vector
+
+// 所有容器都有 时间复杂度O(1)
+a.size();  // 返回元素的个素
+a.empty(); // 空返回true
+
+a.clear(); // 清空
+
+a.front();     // 返回第一个数
+a.back();      // 返回最后一个数
+a.push_back(); // 向最后插入一个数
+a.pop_back();  // 删除vector最后一个数
+
+// 迭代器
+a.begin(); // vector的第0个数
+a.end(); // 最后一个数的后一个数
+for (vector<int>::iterator i = a.begin(); i != a.end(); i++) cout << *i << endl;
+for (auto x : a) cout << x << " ";
+
+[]; // 随机寻址
+
+// 支持比较运算，字典序比较
+vector<int> a(4, 3), b(3, 4);
+if (a < b) puts("Yes");
+
+```
+
+---
+
+#### ***pair***
+
+```c++
+pair<int, string> p;
+p = make_pair(10, "zzz");
+p = {2, "yyy"};
+p.first, p.second;
+//支持比较运算 first为第一关键字，second为第二关键字
+```
+
+---
+
+#### ***string***
+
+> 字符串，可变长
+
+```c++
+#include<cstring>
+
+string s = "zzfdsafz";
+a.size();
+a.empty();
+a.clear();
+
+cout << s.substr(1, 2); // 输出子串，第一个参数：起始位置；第二个参数：长度
+a.substr(1); // 返回从1开始的子串
+
+printf("%s\n", s.c_str()); // 输出s的起始地址，也就可以输出整个字符串
+```
+
+----
+
+#### ***queue***
+
+> 队列
+
+```c++
+#include<quque>
+
+queue<int> q;
+
+q.push();  // 向队尾插入一个元素
+q.pop();   // 弹出队头元素 
+q.front(); // 返回队头元素
+q.back();  //  返回队尾元素
+
+q.size();
+q.empty(); 
+
+// 没有clear函数 要重新构造的话
+q = queue<int>();
+```
+
+----
+
+#### ***priority_queue***
+
+> 优先队列
+
+```c++
+#include<queue>
+
+priority_queue<int> heap; // 默认大根堆 也没有clear函数
+// 小根堆
+heap.push(-x);
+priority_queue<int, vector<int> greater<int>> heap;
+
+heap.push(); // 插入一个元素
+heap.top();  // 返回堆顶元素
+heap.pop();  // 弹出堆顶元素
+```
+
+----
+
+#### ***stack***
+
+> 栈
+
+```c++
+#include<stack>
+
+stack<int> stk;
+
+stk.push();
+stk.pop();
+stk.top();
+
+stk.size();
+stk.empty();
+// 没有clear
+```
+
+---
+
+#### ***deque***
+
+> 双端队列，加强版vector， 但是速度慢
+
+```c++
+#include<deque>
+
+deque<int> q;
+
+q.size();
+q.empty();
+q.clear();
+
+q.front();
+q.back();
+
+q.push_front()/q.pop_front();
+q.push_back()/q.pop_back();
+
+//迭代器
+begin()/end();
+
+// 随机寻址
+[];
+```
+
+---
+
+#### ***set、map、mulitset、mutilmap***
+
+> 基于平衡二叉树（红黑树，平衡二叉树的一种）来实现的，动态维护有序序列
+
+```c++
+#include<set>
+#include<map>
+
+size();
+empty();
+clear();
+
+/*
+	set multiset
+*/
+insert();        // 插入一个数
+find();          // 不存在返回end()的迭代器
+count();         // 返回某一个数的个数
+begin(), end();  // 返回前驱和后继 时间复杂度O(logn)
+/*
+	1. erase(x)，x是一个数，删除所有x。 O(k + logn) k为x的个数
+  2. erase(x), x是一个迭代器，删除这个迭代器。在set中没区别，在mutiset中有区别，迭代器指向的一个数 
+*/
+erase();
+// 不存在返回end
+lower_bound(x); // >= x最小的数的迭代器
+upper_bound(x); // > x的最小的数的迭代器
+
+
+/*
+  map multimap
+*/
+insert(); // 插入的数是pair
+erase();  // 参数可以是pair或者迭代器
+find(); 
+[];       // 时间复杂度是O(logn)
+
+map<string, int> map;
+map["zzz"] = 1;
+cout << map["zzz"];
+```
+
+----
+
+#### ***unordered_set、unordered_map、unordered_multiset、unordered_multimap***
+
+> 基于哈希表来实现的
+
+跟上面操作类似，但是没有lower_bound/upper_bound
+
+#### ***bitset***
+
+> 压位
+
+bool每一个占一字节，如果要开1024个bool，就需要1024B = 1KB
+
+将字节压到每一位，每一个字节能存八位，那么1024个bool只需要128B
+
+**例子**
+
+假设有$10000 \times 10000$的bool数组，$10^4 \times 10^4 = 10^8$ ，$10^8B = 10^2MB$ ，因此有可能超内存限制
+
+```c++
+bitset<10000> s; // 定义长度为10000的bitset
+
+~s, &, |, ^;
+<< >>;
+== !=;
+[]; // 取出来某一位是0或者是1
+
+count(); // 返回有多少个1
+any();   // 判断是否至少有一个1
+none();  // 判断是否全为0
+
+set(); 		 // 把所有位置成1
+set(k, v); // 将第k位变成v
+reset();   // 把所有位置变成0
+flip();    // 等价~
+flip(k);   // 把第k位~(取反)
+```
 
 ---
 
@@ -1219,5 +1641,23 @@ scanf("%s", op);
 op[0];
 strcmp(str1, str2); // 比较两个字符串，相等返回0
 
+```
+
+----
+
+#### **java swap**
+
+```java
+private static void heap_swap(int a, int b) {
+  swap(ph, hp[a], hp[b]);
+  swap(hp, a, b);
+  swap(h, a, b);
+}
+
+private static void swap(int[] arr, int x, int y) {
+  int t = arr[x];
+  arr[x] = arr[y];
+  arr[y] = t;
+}
 ```
 

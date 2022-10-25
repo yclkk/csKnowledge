@@ -1973,7 +1973,103 @@ bool topsort() {
 }
 ```
 
+-----
 
+### 最短路
+
+源点：起点
+
+汇点：终点
+
+$n$ 为点数，$m$ 为边数，$m～n^2$ 可以称为稠密图，$m～n\leq10^5$ 可以称为稀疏图
+
+难点在于如何抽象题目，建图，然后再套用模板
+
+- 单源最短路：从 $1$ 号点到其他点的最小距离
+  - 所有边权都是正数
+    - 朴素版 $dijkstra$，时间复杂度 $O(n^2)$，适合稠密度
+    - 堆优化版 $dijkstra$，时间复杂度 $O(mlog_2n)$ ，适合稀疏图
+  - 存在负权边
+    - $Bellman-Ford$，时间复杂度 $O(nm)$ 
+    - $SPFA$，时间复杂度：一般情况 $O(m)$， 最坏 $O(nm)$。如果有写不超过 $k$ 条边，那么只能用$BF$ 
+- 多源汇最短路：起点终点不止一个，有多个询问
+  - $Floyd$，时间复杂度 $O(n^3)$ 
+
+---
+
+#### 朴素版Dijkstra
+
+```c++
+/*
+	dist[N]：表示当前点到起点的距离
+	st[N]：存的是已经确定是最短路的点
+	g[N][N]：邻接矩阵，存边权值
+	存在自环和重边，g[x][y] = min(g[x][y], c),取最小的权重的边
+*/
+dist[1] = 0, dist[i] = 正无穷;
+for i : 1 ~ n
+{
+  t <- 是不在st中，但是是距离是最近的点;
+  
+  将t加入st中;
+  
+  用t更新其他点的距离
+}
+```
+
+```c++
+int g[N][N], dist[N];
+int n, m;
+bool st[N];
+memset(g, 0x3f, sizeof g);
+
+int dijkstra() {
+    memset(dist, 0x3f, sizeof dist);
+    dist[1] = 0;
+    for (int i = 0; i < n; i++) { // 循环n次，因为有n个点
+        int t = -1;
+      //  找到一个没有确定最小的距离的点，但是距离是最小的
+        for (int j = 1; j <= n; j++) {
+            if (!st[j] && (t == -1 || dist[t] > dist[j]))
+                t = j;
+        }
+        // 找到了，将t加入st中
+        st[t] = true;
+        // 用t更新其他点的距离
+        for (int j = 1; j <= n; j++) {
+            dist[j] = min(dist[j], dist[t] + g[t][j]);
+        }
+    }
+  // 如果不存在1-n的边，那么权重就是0x3f3f3f3f，为何不是2倍的0x3f3f3f3f，是因为取的min，dist[j]就是0x3f3f3f3f
+    if (dist[n] == 0x3f3f3f3f) return -1;
+    return dist[n];
+}
+```
+
+![seventh_dijkstra1](../src/algorithm/seventh_dijkstra1.png)
+
+1. 上图就是 `dist[j] = min(dist[j], dist[t] + g[t][j])` ，但是在 for 循环中，$j$ 是会等于 $1$ 的，因此有会这种情况，`dist[1] = min(dist[1], dist[t] + g[t][1])` ，由于`g[t][1] = 0x3f3f3f3f `，`dist[1]`还是等于本身不变。
+2. 在第一个`for(int j = 1)` 的循环中，假如有1->2权重为2的边，1->3权重为4的边，那么应该用的权重为2的边，体现的代码是`dist[t] > dist[j]`，
+
+---
+
+#### 堆优化版Dijkstra
+
+---
+
+#### Bellman-Ford
+
+---
+
+#### SPFA
+
+---
+
+#### Floyd
+
+---
+
+#### 
 
 ---
 
@@ -2006,5 +2102,7 @@ private static void swap(int[] arr, int x, int y) {
   arr[x] = arr[y];
   arr[y] = t;
 }
+
+
 ```
 

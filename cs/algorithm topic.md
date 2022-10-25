@@ -140,7 +140,13 @@ void heap_swap(int a, int b) {
 }
 ```
 
-**java swap**
+---
+
+##### [845. 八数码](https://www.acwing.com/problem/content/847/)
+
+
+
+
 
 
 

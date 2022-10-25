@@ -1425,7 +1425,7 @@ if (a < b) puts("Yes");
 
 ---
 
-#### ***pair***
+#### ·***pair***
 
 ```c++
 pair<int, string> p;
@@ -1627,6 +1627,353 @@ reset();   // 把所有位置变成0
 flip();    // 等价~
 flip(k);   // 把第k位~(取反)
 ```
+
+---
+
+## 搜索与图论
+
+### DFS
+
+> 深度优先搜索：只有搜到底的时候才会回溯，当回溯发现当前点还未搜完，那么就会继续向下搜
+
+![seventh_dfs](../src/algorithm/seventh_dfs.png)
+
+**特点**
+
+- 数据结构：栈stack
+- 空间复杂度：$O(h)$，跟高度有关
+- 不具有最短性
+
+---
+
+[842. 排列数字](https://www.acwing.com/problem/content/844/)
+
+**步骤：**
+
+1. 第一位为1，第二位为2，第三位为3
+2. 回溯为第二位，发现没有分支，回溯到第1位
+3. 继续第二位为3，第三位为2
+4. 回溯到第二位，没有分支，回溯第一位，没有分支，回溯到根
+5. 第一位为2、3同理
+
+**回溯的时候要恢复现场**
+
+<img src="../src/algorithm/seventh_dfs2.png" alt="seventh_dfs2" style="zoom:30%;" />
+
+---
+
+[843. n-皇后问题](https://www.acwing.com/problem/content/845/)
+
+**第一种解法**
+
+可以跟全排列一样去做，n皇后的条件多，要求对角线、列、排都不能有冲突。如果在某一个分支上放了跟前面节点冲突的点，那么这个点就不满足条件，后面你放多少都是不满足的，因此可以把这部分剪掉，称为**剪枝**
+
+下图，dg[N], udg[N]，对角线，反对角线
+
+<img src="../src/algorithm/seventh_dfs3.png" alt="seventh_dfs3" style="zoom:40%;" />
+
+- 对角线：$y = -x + b => b = x + y$
+
+- 反对角线：$y = x + b => b = y - x$ 
+- $dg[i + u]$， $udg[i - u + n]$，因为$i - u$ 有可能是负数，加n可以变为正数，反正只是将映射关系，不影响结果。$i$是列$y$，$u$是行$x$
+
+**第二种解法**
+
+第一种是按照行来排列的，第二种是根据放还是不放来排列，
+
+<img src="../src/algorithm/seventh_dfs4.png" alt="seventh_dfs4" style="zoom:40%;" />
+
+```c++
+void dfs(int x, int y, int s) {
+    if (y == n) y = 0, x ++;  // 在某一行走到了末尾，那么就需要换行
+    if (x == n) {							// 已经到x - 1的下一行，代表结束了
+        if (s == n) {        // s是皇后的数量
+            for (int i = 0; i < n; i++) puts(g[i]);
+             puts("");
+        }
+       
+        return ;
+    }
+    
+    dfs(x, y + 1, s);        // 不放皇后的分支
+    // 放皇后的分支
+    if (!col[y] && !row[x] && !dg[x + y] && !udg[y - x + n]) {
+        col[y] = row[x] = dg[x + y] = udg[y - x + n] = true;
+        g[x][y] = 'Q';
+        dfs(x, y + 1, s + 1);
+        g[x][y] = '.';
+        col[y] = row[x] = dg[x + y] = udg[y - x + n] = false;
+    }
+}
+```
+
+
+
+---
+
+### BFS
+
+> 宽度优先搜索：一层一层的搜
+
+![seventh_bfs](../src/algorithm/seventh_bfs.png)
+
+**特点**
+
+- 数据结构：队列queue
+- 空间复杂度：$O(2^h)$，跟每一层的节点数有关
+- 具有短路性：每一层一定会搜与它最近的点。假如上图每条边的权重都为1，第一层离根节点的距离为1、第二层为2、第三层为3。并且只有边权为1时才能用最短路
+
+---
+
+[844. 走迷宫](https://www.acwing.com/problem/content/846/)
+
+<img src="../src/algorithm/seventh_bfs2.png" alt="seventh_bfs2" style="zoom:30%;" />
+
+```c++
+queue   初始化;
+while queue不为空
+{
+  t 取出队头
+  扩展queue，
+}
+```
+
+```c++
+int g[N][N];  // 点
+int d[N][N]; // distance
+PII q[N * N]; // 模拟队列
+int n, m;
+
+int bfs() {
+   int hh = 0, tt = -1;
+   memset(d, -1, sizeof d); // 初始化为-1，代表没走过
+   q[++ tt] = {0, 0}; // 初始点为0,0
+   d[0][0] = 0;      // {0,0}的距离为0
+   int dx[4] = {-1, 0, 1, 0}, dy[4] = {0, 1, 0, -1};
+   
+   while (hh <= tt) {
+       auto t = q[hh ++];  // 取出队头
+     // 遍历四个方向
+       for (int i = 0; i < 4; i++) {
+           int x = t.first + dx[i], y = t.second + dy[i];
+         // 不越界、没走过、能走过去
+           if (x >= 0 && x < n && y < m && y >= 0 && d[x][y] == -1 && g[x][y] == 0) {
+               d[x][y] = d[t.first][t.second] + 1;
+               q[++ tt] = {x, y};
+           }
+       }
+   }
+   
+   return d[n - 1][m - 1];
+}
+```
+
+---
+
+### 树和图的深度与广度优先遍历
+
+> 树是特殊的图，并且无环、连通
+
+- 有向图：$a->b$
+- 无向图：$a-b$ =>  $a->b$， $b->a$，可以看作是一种特殊的有向图
+
+**存储**
+
+- 邻接矩阵：空间复杂度为$O(n^2)$，适合存储**稠密图**
+
+​	$g[a,b] = x$ ，存的$a$ -> $b$的边，如果有权重，$x$为权重值，如果没有，$x$为布尔值
+
+- 邻接表
+
+​	每个点都有一个单链表，存储这个点可以到的点
+
+​	<img src="../src/algorithm/seventh_ergodic.png" alt="seventh_ergodic" style="zoom:30%;" />
+
+```c++
+const int N = 100010, M = N * 2;
+int h[N], e[M], ne[M], idx;
+// 初始化头节点，跟单链表一样，都初始化为-1
+memset(h, -1, sizeof h);
+
+// a -> b建立一条边，h[a]指向头节点
+void insert(int a, int b) {
+  e[idx] = b, ne[idx] = h[a], h[a] = idx ++;
+}
+```
+
+---
+
+**遍历**：每个点都只会被遍历一次，时间复杂度为$O(n + m)$
+
+- **深度遍历**：一路走到底，然后回溯
+
+<img src="../src/algorithm/seventh_deepth.png" alt="seventh_deepth" style="zoom:30%;" />
+
+```c++
+bool st[N];
+void dfs(int u ) {
+	st[u] = true; // 标记一下，表示已经遍历过了
+  
+  for (int i = h[u]; i != -1; i = ne[i]) {
+    // 一条路走到黑，j就是编号，h[j]就是编号j指向的节点，下一个就从h[j]开始，到底了之后回溯
+    j = e[i];
+    if (!st[j]) dfs(j); 
+  }
+}
+int main() {
+  dfs(1);
+}
+```
+
+[846. 树的重心](https://www.acwing.com/problem/content/848/)
+
+<img src="../src/algorithm/seventh_deepth2.png" alt="seventh_deepth2" style="zoom:30%;" />
+
+1. 树的深度优先遍历可以很快的求出每个子树的大小，比如求子树4的节点数量，4深度搜索3、6也就是$size(3) + size(6) + 1$ ，就是当前子树的节点数量
+2. 如果要删掉节点$4$， 那么父节点$1$为一个连通块，儿子有两个连通块，父节点$1$的几点数量可以为$n-size(4)$
+3. 这里的核心是，$4$是从$1$下来的，所以说当走到$4$的时候是不会再走上去了，所以另一部分才是$n-size(4)$
+
+```c++
+int ans = N;
+// 以u为根节点子树中节点的个数，包括u
+int dfs(int u) {
+    st[u] = true;
+  // sum：存储以u为根的树点的个数，因为包括u，所以要+1
+  // res：存储删除根节点u，连通块中点数的最大值
+    int sum = 1, res = 0;
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+        if (!st[j]) {
+            int s = dfs(j);
+            res = max(res, s);
+            sum += s;
+        }
+    }
+  // sum的用处主要是在这里，如上图删除4，上面的连通块点的数量就是n - sum
+    res = max(res, n - sum);
+  // ans:最大值的最小值
+    ans = min(ans, res);
+    return sum;
+}
+int main() {
+  // 九个点，但是只有8条边，所以要-1
+   for (int i = 0; i < n - 1; i++) {
+        int a, b;
+        cin >> a >> b;
+        add(a, b), add(b, a);
+    }
+}
+```
+
+----
+
+- **广度遍历**：层层遍历
+
+<img src="../src/algorithm/seventh_extent.png" alt="seventh_extent" style="zoom:30%;" />、
+
+```c++
+queue <- 初始化1
+while (queue不为空){
+  t <- q队头;
+  扩展t的所有邻点x;
+  if (x未被遍历){
+    q <- x;
+    d[x] = d[t] + 1;
+  }
+}
+```
+
+[847. 图中点的层次](https://www.acwing.com/problem/content/849/)
+
+这道题跟走迷宫差不多，走迷宫是遍历四个方位的点，这道题是遍历邻点，**本质都是搜离自己最近的点**
+
+```c++
+int bfs() {
+    int hh = 0, tt = -1;
+    q[++ tt] = 1;
+    memset(d, -1, sizeof d);
+    d[1] = 0;
+    
+    while (hh <= tt) {
+        auto t = q[hh ++];
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (d[j] == -1) {
+                d[j] = d[t] + 1;
+                q[++ tt] = j;
+            }
+        }
+    }
+    return d[n];
+}
+```
+
+---
+
+### 拓扑排序
+
+> 拓扑序列针对有向图
+>
+> 可以证明有向无环图一定存在一个拓扑序列，也就是至少存在一个入度为 $0$ 的点，有向无环图也被称为拓扑图
+
+**定义**：若一个由图中所有点构成的序列 $A$ 满足：对于图中的每条边 $(x,y)$，$x$ 在 $A$ 中都出现在 $y$ 之前，总而言之就是这个图从前往后，不会回头的
+
+**概念：**
+
+- 入度：有几条边指向某个点
+- 出度：这个点有几条边出去了
+
+如图，$3$ 的入度为 $2$， 出度为 $0，
+
+```mermaid
+graph LR;
+
+a(1) --> b(2);
+b(2) --> c(3);
+a(1) --> c(3);
+```
+
+**求拓扑序列**
+
+1. 入度为 $0$ 的点都可以作为起点，排在最前面的位置。
+2. 为什么要删掉 $t->j$ 这条边：$t$ 是属于队头拿出来的，必然是入度为 $0$ 的点，当枚举出边 $j$ 的时候，$j$ 是一定满足在 $t$ 后面的，所以要把 $t->j$ 这条边删掉，删掉 $t->j$ 会影响$j$ 的入度，当 $j$ 的入度为 $0$ 的时候 $j$ 就可以入队了。
+3. 环是不存在入度为 $0$ 的点，所以不可能是拓扑序列
+
+```c++
+queue <- 入度为 0 的点入队;
+while (q不空) {
+  t <- 队头;
+  枚举 t 的所有出边 t->j;
+    删掉t->j这条边, d[j] --;  // d[j]表示j这个点的入度     
+    if (d[j] == 0) q <- t;
+}
+```
+
+```c++
+// 结束时，队列里就是拓扑序列
+bool topsort() {
+    int hh = 0, tt = -1;
+  // 将入度为0的点加入队列
+    for (int i = 1; i <= n; i++) 
+        if (d[i] == 0) q[++ tt] = i;
+    
+    while (hh <= tt) {
+        int t = q[hh ++];
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            d[j] --;
+          // 入度为0就可以作为起点入队了
+            if (d[j] == 0) {
+                q[++ tt] = j;
+            }
+        }
+    }
+    return tt == n - 1;
+ 
+}
+```
+
+
 
 ---
 

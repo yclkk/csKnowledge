@@ -2009,11 +2009,11 @@ $n$ 为点数，$m$ 为边数，$m～n^2$ 可以称为稠密图，$m～n\leq10^5
 dist[1] = 0, dist[i] = 正无穷;
 for i : 1 ~ n
 {
-  t <- 是不在st中，但是是距离是最近的点;
+  t <- 是不在st中，但是是距离是最近的点;  // O(n^2)
   
-  将t加入st中;
+  将t加入st中;     // O(n)
   
-  用t更新其他点的距离
+  用t更新其他点的距离   // O(m)其实就是O(n^2)，稠密图n^2~m，或者，本质就是遍历了所有的边，画图知晓
 }
 ```
 
@@ -2049,27 +2049,295 @@ int dijkstra() {
 ![seventh_dijkstra1](../src/algorithm/seventh_dijkstra1.png)
 
 1. 上图就是 `dist[j] = min(dist[j], dist[t] + g[t][j])` ，但是在 for 循环中，$j$ 是会等于 $1$ 的，因此有会这种情况，`dist[1] = min(dist[1], dist[t] + g[t][1])` ，由于`g[t][1] = 0x3f3f3f3f `，`dist[1]`还是等于本身不变。
-2. 在第一个`for(int j = 1)` 的循环中，假如有1->2权重为2的边，1->3权重为4的边，那么应该用的权重为2的边，体现的代码是`dist[t] > dist[j]`，
+2. 在第一个`for(int j = 1)` 的循环中，假如有1->2权重为2的边，1->3权重为4的边，那么应该用的权重为2的边，体现的代码是`dist[t] > dist[j]`。
+2. 为什么`for(int j = i)`开始不行：这个图并不是拓扑图，不是一路往前走，有可能会回头的
 
 ---
 
 #### 堆优化版Dijkstra
 
+```c++
+dist[1] = 0, dist[i] = 正无穷;
+for i : 1 ~ n
+{
+  t <- 是不在st中，但是是距离是最近的点;  // 堆获取最小值的时间复杂为O(1)
+  
+  将t加入st中;    // O(n)
+  
+  用t更新其他点的距离  // 堆修改值的时间复杂度是O(logn)，因此这步时间复杂为度O(mlogn)
+}
+```
+
+```c++
+// w[idx] 表示a->b的边权值
+void add(int a, int b, int c) {
+    w[idx] = c, e[idx] = b, ne[idx] = h[a], h[a] = idx ++;
+}
+
+int dijkstra() {
+    memset(dist, 0x3f, sizeof dist);
+    dist[1] = 0;
+    priority_queue<PII, vector<PII>, greater<PII>> heap;
+  // first存的距离，second存的点，小根堆先按pair.first排序，因此距离最小的点在堆顶
+    heap.push({0, 1});
+    while (heap.size()) {
+        auto t = heap.top();
+        heap.pop();
+        int ver = t.second, distance = t.first;
+      /*
+      	因为每次dist[j] = distance + w[i]的时候，都会把j放进去堆，
+      	假如有1->2，权重为3；1->3，权重为1；3->2，权重为1
+      	 1. 用1更新其他点的距离，会把2、3加进堆里
+      	 2. 由于是找距离最小的点，所以会先找3
+      	 3. 用3去更新其他点的距离，会把2加进堆里
+      	 4. 开始用2了，这个时候堆里存的{2, 2}、{3, 2}
+      	 5. 因为小根堆，要拿距离最小的点{2, 2}, 因此{3, 2}是冗余的点，下次碰见的时候需要跳过
+      */
+        if (st[ver]) continue;
+        st[ver] = true;
+        for (int i = h[ver]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > distance + w[i]) {
+                dist[j] = distance + w[i];
+                heap.push({dist[j], j});
+            }
+            
+        }
+    }
+    if (dist[n] == 0x3f3f3f3f) return -1;
+    return dist[n];
+}
+```
+
+
+
 ---
 
 #### Bellman-Ford
+
+```c++
+for n 次
+{
+  for 所有边 a -w-> b
+    dist[b] = min(dist[b], dist[a] + w); // 松弛操作
+}
+```
+
+完事之后，所有边满足：$dist[b] \leq dist[a] + w$，三角不等式
+
+有负权回路的话，最短路**不一定**存在，每经过一个环都会$5+(-4+-2)=-1$，走无穷次就会到$-\infty$
+
+![eighth_bellman-ford](../src/algorithm/eighth_bellman-ford.png)
+
+```mermaid
+flowchart LR;
+
+a(1) --1--> b(2);
+b(2) --2--> c(3);
+a(1) --6--> c(3);
+c(3) --4--> d(4);
+d(4) --5--> e(5);
+
+```
+
+**为什么要用备份**：防止发生串联
+
+1. $dist[i] = +\infty$ 
+2. 第一次循环，更新所有边：$dist[2] = 1,\quad dist[3] = 6,\quad dist[3] = 3,\quad dist[4] = 7,\quad dist[5] = 12$，造成了边遍历边更新的问题
+3. 题目要求是 $1$~$n$ ，最多经过 $k$ 条边，如果不用备份，一开始就更新完了所有的边
+4. 需要保证每一次迭代都只会更新路径 $+1$ 的边
+5. 使用了备份的情况下
+   1. $dist[3] = 6,\quad dist[2] = 1$
+   2. $dist[4] = 10,\quad dist[3] = 3$
+   3. $dist[5] = 15, \quad dist[4] = 7$，$k=3$ 条边，$15$ 为答案
+   4. $dist[5] = 12$，$k=4$ ，$12$ 为答案
+6. 因为备份的是上一次的结果的，其他没更新到的点都是$+\infty$，所以就算是负权边去更新，`min`的结果也是$+\infty$ 
+
+```c++
+const int N = 510, M = 10010;
+int n, m, k;
+struct Edge {
+    int a, b, c;
+}edges[M];
+int dist[N], backup[N]; // backup是用来备份的，存上一次dist的结果
+
+int bellman_ford() {
+    memset(dist, 0x3f, sizeof dist);
+    dist[1] = 0;
+    for (int i = 0; i < k; i++) {  // 经过k条边的最短路
+      // 保存上一次的dist
+        memcpy(backup, dist, sizeof dist);
+        for (int j = 0; j < m; j++) {  // 更新所有边
+            int a = edges[j].a, b = edges[j].b, w = edges[j].c;
+          // 要用上一次的dist结果来更新，如果是用当前的话，就会把每条边都更新了
+            dist[b] = min(dist[b], backup[a] + w); 
+        }
+    }
+  // 因为存在负权边，可能会小于0x3f3f3f3，所以只要保证大于某个比较大的数
+    if (dist[n] > 0x3f3f3f3f / 2 ) return 0x3f3f3f3f;
+    return dist[n];
+}
+```
+
+---
+
+BF可以用来求是否存在负环
+
+1. 迭代 $n$ 次，如果第 $n$ 次还有更新边的话，表示有一条长度为 $n$ 的最短路
+2. 有一条长度为 $n$ 的路径，那就有 $n+1$ 个点，实际上只有 $n$ 个点。
+3. 根据**抽屉原理**，一定存在两个点是一样的，也就是存在一个环，并且是负环
+4. 时间复杂度较高，一般用 $SPFA$ 来求
 
 ---
 
 #### SPFA
 
+> 没有负环可以用SPFA，一般情况下都没有负环
+>
+> 从bellman-ford的dist[b] = min(dist[b], dist[a] + w)进行优化，只有dist[a]变小，dist[b]才会变小
+
+```c++
+queue <- 1;  // 队列里面存的是变小的节点，也就是上述的dist[a]
+while q 不为空 {
+  1.
+   t <- q.front;
+   q.pop();
+  
+  2. 
+   用t来更新t的所有出边 t-w>b// 因为t变小了，那么它的出边的点也应该变小
+    更新成功: q <- b,ps如果q里面已经有b，那么就不用重复加	 
+}
+```
+
+
+
+```c++
+int q[N], st[N], dist[N];
+int n, m;
+int w[N], h[N], e[N], ne[N], idx;
+
+void add(int a, int b, int c) {
+    w[idx] = c, e[idx] = b, ne[idx] = h[a], h[a] = idx ++;
+}
+
+int spfa() {
+    memset(dist, 0x3f, sizeof dist);
+    int hh = 0, tt = -1;
+    q[++ tt] = 1;
+    dist[1] = 0;
+    st[1] = true;
+    while (hh <= tt) {
+        auto t = q[hh ++];
+        st[t] = false;
+        
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > dist[t] + w[i]) {
+                dist[j] = dist[t] + w[i];
+                if (!st[j]) {
+                    st[j] = true;
+                    q[ ++ tt] = j;
+                }
+            }
+        }
+    }
+    if (dist[n] == 0x3f3f3f3f) return 0x3f3f3f3f;
+    return dist[n];
+}
+```
+
+**SPFA求负环**
+
+- dist[x]：最短距离， dist[x] = dist[t] + w[i];
+
+- cnt[x]：经过的边数，cnt[x] = cnt[t] + 1，更新了之后要加一条边，跟 dist 类似的
+
+1. 如果 $cnt[x] \geq n$ ，就证明了经过了 $n$ 条边，由**抽屉原理**可知，就存在 $n + 1$ 个点，所以存在环。
+
+2. SPFA是求最短距离，要更新dist[x] 那必然是因为距离变小了，由此得知，这个环是负环
+3. 如果是正环，那么距离必定比不经过环的距离要大。这是由于经过的边数增加，在都是正数的情况下，经过 $n$ 条边的距离大于经过 $n - 1$ 条边的距离
+
+```c++
+// 手写队列需要开大一点，q[N], N = 10^7，不行就再开大一些
+bool spfa() {
+    queue<int> q;
+    int tt = -1, hh = 0;
+    
+  /*
+  	求负权回路主要是看一个相对变小的状态，不是求最短路需要一个精确的值，因此不初始化dist也没关系
+  	如果只是q.push(1)，那么如果1-n之间没有负权回路的话就会返回false，所以一开始需要把所有点都加入到队列里，只要看到某个点到某个点经过了回路就行
+  */
+    for (int i = 1; i <= n; i++) {
+        st[i] = true;
+        q.push(i);
+    }
+    
+    while (q.size()) {
+        int t = q.front();
+        q.pop();
+        st[t] = false;
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > dist[t] + w[i]) {
+                dist[j] = dist[t] + w[i];
+              // 给cnt[j]加边
+                cnt[j] = cnt[t] + 1;
+                if (cnt[j] >= n) return true;
+                if (!st[j]) {
+                    q.push(j);
+                    st[j] = true;
+                }
+            }
+        }
+    }
+    return false;
+}
+```
+
 ---
 
 #### Floyd
 
----
+基于动态规划：$d[k, i, j]$ 表示从 $i$ 出发，经过 $1$ 到 $k$ 这些中间点，到达 $j$ 的最短距离。
 
-#### 
+​	`d[k, i, j] = d[k - 1, i, k] + d[k -1, k, j]`
+
+d[i, j]：存储所有边
+
+```c++
+for (k = 1~n) {
+  for (i = 1~n) {
+    for (j = 1~n) {
+      d[i,j] = min(d[i,j], d[i,k] + d[j,k]);
+    }
+  }
+}
+```
+
+循环之后 d[i, j] 就是 $i$~$j$ 的最短距离
+
+```c++
+void floyd() {
+    for (int k = 1; k <= n; k++) 
+        for (int i = 1; i <= n; i++) 
+            for (int j = 1; j <= n; j++) 
+                d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+}
+
+// 自环初始化为0，在取min的时候也是0，重边就取最小值
+for (int i = 1; i <= n; i++) {
+  for (int j = 1; j <= n; j++) {
+    if (i == j) d[i][j] = 0;
+    else d[i][j] = INF;
+  }
+}
+
+while (m --) {
+  int a, b, c;
+  scanf("%d%d%d", &a, &b, &c);
+  d[a][b] = min(d[a][b], c);
+} 
+```
 
 ---
 
@@ -2106,3 +2374,6 @@ private static void swap(int[] arr, int x, int y) {
 
 ```
 
+
+
+算法追求的是短时间内看懂，工程化是方便维护

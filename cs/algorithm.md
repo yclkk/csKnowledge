@@ -1835,7 +1835,7 @@ int main() {
 
 ```c++
 int ans = N;
-// 以u为根节点子树中节点的个数，包括u
+// 以u为根节点子树中节点的个数，包括
 int dfs(int u) {
     st[u] = true;
   // sum：存储以u为根的树点的个数，因为包括u，所以要+1
@@ -2340,6 +2340,269 @@ while (m --) {
 ```
 
 ---
+
+### 最小生成树
+
+> 无向图
+>
+> 定义：一个连通图的生成树是一个极小的连通子图，它包含图中全部的 $n$ 个顶点，但只有构成一棵树的 $n-1$ 条边
+
+[图解：什么是最小生成树？](https://zhuanlan.zhihu.com/p/136387766)
+
+![ninth_minimumTree](../src/algorithm/ninth_minimumTree.png)
+
+- Prim（普利姆）
+  - 朴素版Prim，时间复杂度 $O(n^2)$，稠密图
+  - 堆优化版Prim，时间复杂度 $O(mlog_2n)$，稀疏图，不常用
+- Kruskal（克鲁斯卡尔），时间复杂度 $O(mlog_2m)$ ，稀疏图
+
+#### 朴素版Prim
+
+```c++
+dist[i] <- 正无穷;
+for (i = 0; i < n) {
+  t <- 找到集合外距离最近的点;
+  用t更新其他点到 集合 的距离;
+  st[t] = true;
+}
+```
+
+```c++
+int prim() {
+    memset(dist, 0x3f, sizeof dist);
+    int res = 0;
+    for (int i = 0; i < n; i++) {
+        int t = -1;
+        for (int j = 1; j <= n; j++) {
+            if (!st[j] && (t == -1 || dist[t] > dist[j])) 
+                t = j;
+        }
+        /*
+      		一开始初始化为0x3f3f3f3f，如果是i=0，dist[t]必然是0x3f3f3f3f
+      		如果i!=0，dist[t]=INF，就说明图不连通
+        */
+        if (i && dist[t] == INF) return INF;
+      	/*
+        	dist[t] 就是集合外最近的点，到集合的距离就是最近的，可以放在答案中
+        	如果先用t去更新其他点，那么必然会更新g[t][t]，如果存在自环的话dist[t]就会被更新，答案就会发现改变
+      	*/
+        if (i) res += dist[t];
+        st[t] = true;
+        
+        for (int j = 1; j <= n; j++) dist[j] = min(dist[j], g[t][j]);
+        
+        
+    }
+    return res;
+}
+```
+
+
+
+![ninth_prim](../src/algorithm/ninth_prim.png)
+
+1. 用 $t$ 更新其他点到 集合 的距离这一步就决定了一个点到集合的边数只有一条
+2. 上图中，当用点 $3$ 去更新点到集合的距离时，发现点 $4$ 到集合的距离是 $3<4$，所以是不会被更新的
+3. 跟 $dijkstra$ 的区别：这里是没有dist数组的，$dijkstra$ 是要求点 $x$ 到 $1$ 号点距离，这里只是求到集合的最小距离
+
+---
+
+#### 堆优化版Prim
+
+> 基本用不到，不管
+
+```c++
+dist[i] <- 正无穷;   // 用堆来维护
+for (i = 0; i < n) {
+  t <- 找到集合外距离最近的点;    // O(n)  
+  用t更新其他点到 集合 的距离;    // O(mlogn) 跟dijkstra一样
+  st[t] = true;      					// O(n)
+}
+```
+
+---
+
+#### Kruskal
+
+**步骤**
+
+1. 将所有边按照权重从小到大排序，$O(mlog_2m)$ 。
+
+   这一步是 Kruskal算法时间复杂度的瓶颈，但是快排的常量低，比如同样都是 $O(nlogn)$ 的两个算法，前者只进行一次运算，后者进行了 $100$ 次运算。理论上两者的级别是一样的，但是后者要比前者慢 $100$ 倍。
+
+2. 枚举每条边 $a, b$，权重 $c$ ，
+
+   $if$ $a, b$ 不连通
+
+   ​	将这条边加入到集合中
+
+   时间复杂度 $O(m)$ 
+
+3. 用并查集来做第 $2$ 步，因为是根据权重从小到大到枚举的，所以第一次枚举到 $a, b$ 一定是权重最小的，那么就可以直接加入到集合当中
+
+```c++
+struct Edge {
+    int a, b, w;
+  /*
+  	函数加上const后缀的作用是表明函数本身不会修改类成员变量。
+  	加上const，对于const的和非const的实参，函数就能接受；如果不加，就只能接受非const的实参。
+  	避免在函数调用时对实参的一次拷贝，提高了效率。
+  */
+    bool operator< (const Edge &W)const {
+        return w < W.w;
+    }
+}edges[N];
+
+int main()
+{
+   sort(edges, edges + m);
+    
+    for (int i = 1; i <= n; i++) p[i] = i;
+    
+    int res = 0, cnt = 0;
+    for (int i = 0; i < m; i++) {
+        int a = edges[i].a, b = edges[i].b, w = edges[i].w;
+        if (find(a) != find(b)) {
+            p[find(a)] = find(b);
+            res += w;
+            cnt ++;
+        }
+    }
+    
+    if (cnt < n - 1) puts("impossible");
+    else printf("%d\n", res);
+}
+```
+
+
+
+---
+
+### 二分图
+
+- 染色法：dfs，时间复杂度是线性的。时间复杂度 $O(n + m)$ 
+- 匈牙利算法，时间复杂度：最坏$O(mn)$，实际运行时间一般远小于 $O(mn)$ 
+
+#### 染色法
+
+> 判定一个图是否是二分图
+
+**定义：**二分图，当且仅当一个图中不含有奇数环。边数都是在集合之间，集合内部没有边
+
+<img src="../src/algorithm/ninth_binary.png" alt="ninth_binary" style="zoom:30%;" /> 
+
+如果存在奇数环，那集合内部就会存在边。编号 $1$ 为集合 $1$，编号 $2$ 为集合 $2$ ，当前 $3$ 条边构不成环，想要构成环，那么 $1$ 和 $2$ 就重叠了，与环的性质矛盾	
+
+<img src="../src/algorithm/ninth_binary2.png" alt="ninth_binary2" style="zoom:30%;" />
+
+**充分性：**
+
+1. 如果一个点还没被加到集合中去，那么就把这个点加入到第一个集合中。
+2. 遍历所有点，一条边的两个端点一定是在不同的集合
+3. 由此可以确定所有的点的颜色。由于图中不含有奇数环，所以染色过程中一定没有矛盾
+
+```c++
+for (int i = 1; i <= n; i++) {
+  if (i 为染色)
+    	dfs(i, 1);
+}
+```
+
+```c++
+bool dfs(int u, int c) {
+  // 上色
+    color[u] = c;
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+      // 相邻两点颜色一样，返回false
+        if (color[j] == c) {
+            return false;
+        }
+      // 邻点没被染色，但是之后遍历的点有冲突，返回false
+        if (!color[j]) {
+          // 3-1=2, 3-2=1
+            if (!dfs(j, 3 - c)) return false;
+        }
+    }
+    return true;
+}
+int main() {
+  // 因为图不是连通图，需要判断每个连通图，如果某个已经被染色了，证明是在前几个点的连通图上，不需要重复染色
+  for (int i = 1; i <= n; i++) {
+        if (!color[i]) {
+            if (!dfs(i, 1)) {
+                flag = false;
+                break;
+            }
+        }
+    }
+}
+```
+
+---
+
+#### 匈牙利算法
+
+- 每次匹配的时候，如果当前的点已经属于别的点，那么看属于的点能不能匹配其他点
+
+- 因而时间复杂度为：遍历所有点 $O(n)$ ，最坏情况下把所有边都遍历一遍 $O(n \times m)$ ，实际上有些边遍历不到
+
+回去画图
+
+
+
+![ninth_hungry](../src/algorithm/ninth_hungry.png)
+
+```c++
+int h[N], e[M], ne[M], idx;
+int match[N];
+bool st[N];
+int n1, n2, m;
+
+bool find(int x) {
+    for (int i = h[x]; i != -1; i = ne[i]) {
+        int j = e[i];
+        if (!st[j]) {
+          /*
+          	st的含义：
+          		假设n1 = 1有两个邻点n2 = 1, 2
+          		   n2 = 2有一个邻点n2 = 1
+          		n1第一次匹配match[1] = 1成功，n2向匹配时，n2 = 1对于n2是没尝试匹配过的，但是match[1]!=0
+              那就只能看跟n2 = 1原先匹配的是否能换个人，这就为find(match[j])的含义
+              n1 = 1再次匹配时，这时要去遍历邻点，此时st[1] = true，所以n1 = 1不会再去尝试匹配n2 = 1，尝试匹配第二次n2 = 2匹配成功并且返回true，n1 = 2也就顺理成章的匹配n2 = 1
+          		
+          */
+            st[j] = true;
+            if (match[j] == 0 || find(match[j])) {
+                match[j] = x;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int main() {
+  for (int i = 1; i <= n1; i++) {
+        memset(st, false, sizeof st);
+        if (find(i)) res ++;
+    }
+}
+```
+
+**st的含义：**
+
+假设
+
+$n_1 = 1$ 有两个邻点 $n_2 = 1, 2$
+$n_2 = 2$ 有一个邻点 $n_2 = 1$
+
+1. $n_1 = 1$ 第一次匹配 $match[1] = 1$ 成功，$n_1 = 2$ 匹配时，$n_2 = 1$ 对于 $n_1 = 2$ 是没尝试匹配过的，但是 $match[1]!=0$ 
+2.  那就只能看跟 $n_2 = 1$ 原先匹配的是否能换个人，这就为 `find(match[j])` 的含义
+3. $n_1 = 1$ 再次匹配时，这时要去遍历邻点，此时 $st[1] = true$ ，所以 $n_1 = 1$ 不会再去尝试匹配 $n_2 = 1$，尝试匹配 $n_2 = 2$ 成功并且返回 $true$，$n_1 = 2$ 也就顺理成章的匹配  $n_2 = 1$ 
+4. 因而 $st$ 每次都需要初始化为 `false`
+
+----
 
 ## 备注
 

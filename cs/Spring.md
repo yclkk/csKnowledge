@@ -1,6 +1,6 @@
 
 
-### Java知识
+## Java知识
 
 `String.format("%d", x)`跟`printf("%d", x)`，这俩作用差不多，一个是输出到`String`里面，一个是输出到标准输出里
 
@@ -43,7 +43,490 @@ public class Main {
 - java.util.HashSet<K>：哈希表：有序
 - java.util.TreeSet<K>：平衡树：无序
 
+---
 
+### 泛型
+
+- jdk5.0新加的特性
+
+- 在集合中使用泛型
+
+  1. 集合结果或者集合类在jdk5.0时都修改为带泛型的结果
+
+  2. 在实例化集合时，可以指明具体的泛型类型
+
+  3. 指明完以后，在集合类中凡是定义了接口或者类，内部结构使用到了泛型的位置，都指定为了实例化的泛型类型
+
+  4. 范型的类型必须是**类**，不能是基本的数据类型。需要用到基本类型的位置，拿包装类替换
+
+  5. 如果实例化时，没有指明泛型的类型，默认类型为`java.lang.Object`
+
+     ```java
+     ArrayList list = new ArrayList();
+     ```
+
+---
+
+**自定义泛型接口，类**
+
+- 泛型可能有多个参数，用,隔开<E1, E2, E3>比如Map<K, V>
+
+- 泛型类的构造器如下：public GenericClass(){}
+
+- 实例化后，操作原来泛型位置的结构必须与指定的泛型结构一致
+
+- 泛型的不同引用不能相互赋值
+
+  ```java
+  ArrayList<Integer> list1 = null;
+  ArrayList<String> list2 = null;
+  list1 = list2; // 不允许
+  ```
+
+- 泛型如果不指定，将被擦除，泛型对应的类型均按照Object处理，但不等价于Object。**经验：**泛型要使用一路都要用，要不用，一路都不要用
+
+- Jdk1.7之后可以作类型推断：`List<Integer> list = new Array<>();`
+
+- **静态方法**不能使用类的泛型：因为类的泛型是要用的时候才生成，而静态方法是一开始就有了，从生命周期的角度来看，静态方法的时间早于类实例的创建
+
+- 异常类不能是泛型
+
+  ```java
+  public class Generic extends Exception{} // 不允许
+  public void Generic() {
+    try{}catch{} // 不允许
+  }
+  ```
+
+- 继承可以部分保留泛型
+
+  ```java
+  class Father<T1, T2>{}
+  
+  class Son1 extends Father{} // 不保留，擦除泛型，实例化Son1时，默认为Object
+  
+  class Son2 extends Father<Integer, String>{} // 具体类型
+  
+  class Son3<T1, T2, A, B> extends Father<T1, T2>{}   // 全部保留
+  
+  class Son4<T2, A, B> extends Father<Integer, T2>{} // 部分保留
+  ```
+
+
+---
+
+**Class<?>**
+
+> ?表示通配符，代表不确定的类型
+
+通配符表示编译期不确定，但是运行时一定的类型；泛型代表编译期一类的数据。
+
+
+
+---
+
+### 反射
+
+> 可以动态的将代码加进在项目里
+
+在`java`中，每一次修改代码都需要重新打包。如果使用了反射，那么这段代码就可以不存在打包后的代码里。有一段频繁修改的代码或者在贪吃蛇中需要用户将代码加进项目里，都可以使用反射
+
+Calculator类
+
+```java
+package com.zyc.reflect;
+
+public class Calculator {
+    public String name;
+
+    public int a;
+
+    public Calculator(){}
+
+    public Calculator(String name) {
+        this.name = name;
+    }
+    public Calculator(String name, int a) {
+        this.name = name;
+        this.a = a;
+    }
+
+    public int add(int a, int b) {
+        return a + b;
+    }
+
+    @Override
+    public String toString() {
+        return name + "," + a;
+    }
+}
+```
+
+Main方法
+
+```java
+package com.zyc.reflect;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+public class Main {
+    public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
+      // ?代表不确定类型，
+      Class<?> cls = Class.forName("com.zyc.reflect.Calculator");
+      // 无参对象
+      Object o = cls.newInstance();
+      // 获取Calculator的add方法，传入参数的Class类型
+      Method method = cls.getMethod("add", int.class, int.class);
+      // 是哪一个对象调用了这个方法
+      int res = (int) method.invoke(o, 3, 4);
+      System.out.println(res);
+      // 获取名称为a的成员变量，也可以获取"name"
+      Field field = cls.getField("a");
+      // 为o对象的域设置值
+      field.set(o, 5);
+      Field field2 = cls.getField("name");
+      field2.set(o, "My Calculator");
+      System.out.println(o);
+			// 使用Constructor获取有参构造函数
+      Constructor<?> constructor = cls.getConstructor(String.class, int.class);
+      Object newObject = constructor.newInstance("new Calculator", 9);
+      System.out.println(newObject);
+    }
+}
+
+```
+
+---
+
+### 多线程与锁
+
+#### 多线程
+
+![主线程和其他线程](../src/java/last_lesson_multiThread.png)
+
+**解释**：左边那条线为**主线程**，`worker1,worker2`为中途开的线程，因此在这里边就有了三个线程，线程的执行顺序是随机的。线程看上去是并行做的
+
+[并发和并行的区别](../src/java/并发和并行的区别（图解）.html)
+
+---
+
+继承`Thread`类
+
+```java
+package com.zyc.multipleThread;
+
+class Worker1 extends Thread {
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Hello " + this.getName());
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+class Worker2 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Hello " + this.getName());
+        }
+        try {
+            sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Worker1 worker1 = new Worker1();
+        Worker2 worker2 = new Worker2();
+        worker1.setName("Thread-1");
+        worker2.setName("Thread-2");
+        worker1.start();
+      	worker1.join();
+      	// worker1执行完之后才会执行worker2，最后输出hello main
+       // 如果把worker1.join()放在worker2.start()之后，那么这两个还是随机执行，最后输出Hello main
+        worker2.start();
+      	worker2.join();
+        System.out.println("Hello Main");
+    }
+}
+```
+
+---
+
+实现`Runnable`接口
+
+```java
+package com.zyc.multipleThread;
+
+class Worker1 implements Runnable {
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Thread-1 " + i);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+
+class Worker2 implements Runnable {
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Thread-2 " + i);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Thread(new Worker1()).start();
+        new Thread(new Worker1()).start();
+      //new Thread(new Worker2()).start();
+    }
+}
+
+```
+
+---
+
+**常用API**
+
+1. start()：开启一个线程
+
+2. Thread.sleep(): 休眠一个线程
+
+3. join()：等待线程执行结束
+
+4. interrupt()：从休眠中中断线程，有抛出中断的时候才有影响。对`sleep、wait`有影响，如果是执行比较慢的，并不能中断，如下
+
+   ```java
+   class Worker1 extends Thread {
+       @Override
+       public void run() {
+           for (int i = 0; i < 10; i++) {
+             for (int x = 0; x < 1000; x++) 
+               for (int y = 0; y < 1000; y ++)
+                 for (int z = 0; z < 1000; z ++)
+                   s = (s + x * y * z) % 123;
+             System.out.println("Hello " + i + s + this.getName());      
+           }
+       }
+   }
+   public class Main {
+       public static void main(String[] args) {
+           Worker1 worker1 = new Worker1();
+           Worker2 worker2 = new Worker2();
+           worker1.setName("Thread-1");
+           worker2.setName("Thread-2");
+           worker1.start();
+           worker2.start();
+         	worker1.join(5000);// 等待5s
+        		worker1.interrupt();
+           System.out.println("Hello Main");
+       }
+   }
+   ```
+
+5. setDaemon()：将线程设置为守护线程。当只剩下守护线程时，程序自动退出。比如垃圾回收机制，当所有用户线程结束后自动结束掉，也可以手动设置一个守护线程
+
+   ```java
+   //还是按照第一个例子
+   public class Main {
+     public static void main(String[] args) throws InterruptedException {
+       Worker1 worker1 = new Worker();
+       Worker2 worker2 = new Worker();
+       worker1.setName("Thread-1");
+       worker2.setName("Thread-2");
+       worker1.setDaemon(true);
+       worker2.setDaemon(true);
+       worker1.start();
+       worker2.start();
+       Thread.sleep(5000);
+       System.out.println("Hello Main Thread");
+     }
+   }
+   ```
+
+---
+
+#### 锁
+
+例子
+
+> 有两个线程都在执行cnt + 1
+>
+> 假设cnt = 0，Thread-1取cnt = 0，然后挂载，Thread-2取cnt = 0
+>
+> 然后cnt + 1，会发现，结果并不正确
+
+```java
+package com.zyc.multipleThread;
+
+
+import static com.zyc.multipleThread.Worker.cnt;
+
+class Worker extends Thread {
+    public static int cnt = 0;
+    @Override
+    public void run() {
+        for (int i = 0; i < 100000; i++) {
+            cnt ++;
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        Worker worker1 = new Worker();
+        Worker worker2 = new Worker();
+        worker1.setName("Thread-1");
+        worker2.setName("Thread-2");
+        worker1.start();
+        worker2.start();
+        worker1.join();
+        worker2.join();
+
+        System.out.println(cnt);
+    }
+}
+// 结果并不为20w
+```
+
+**第一种方法**
+
+```java
+public class Main {
+  public static void main(String[] args) throws InterruptedException {
+    Worker worker1 = new Worker();
+    Worker worker2 = new Worker();
+    worker1.setName("Thread-1");
+    worker2.setName("Thread-2");
+    worker1.start();
+    worker1.join();
+    
+    worker2.start();
+    worker2.join();
+
+    System.out.println(cnt);
+  }
+}
+// 这样执行效率太慢，一次只能有一个线程在执行
+```
+
+**第二种方法：加锁**
+
+1. 使用`ReentrantLock`
+
+   ```java
+   class Worker extends Thread {
+       public static int cnt = 0;
+       private static ReentrantLock reentrantLock = new ReentrantLock();
+       @Override
+       public void run() {
+           for (int i = 0; i < 100000; i++) {
+              reentrantLock.lock();
+              try{
+                  cnt ++;
+              } finally {
+                  reentrantLock.unlock();
+              }
+   
+           }
+       }
+   }
+   ```
+
+2. 使用`synchronized`
+
+   - 加在代码块上
+
+   ```java
+   class Worker extends Thread {
+       public static int cnt = 0;
+       private static Object object = new Object();
+     
+       @Override
+       public void run() {
+           synchronized (object){
+               for (int i = 0; i < 100000; i++) {
+                   cnt ++;
+               }
+           }
+       }
+   }
+   ```
+
+   - 加在函数上，等同于`synchronized(this)`
+
+   ```java
+   class Worker implements Runnable {
+       public static int cnt = 0;
+   
+       private synchronized void work() {
+         // 等价于synchronized(this){} 因此不同实例加的锁是不一样的，所以结果不会为20w
+           for (int i = 0; i < 100000; i ++ ) {
+               cnt ++ ;
+           }
+       }
+   
+       @Override
+       public void run() {
+           work();
+       }
+   }
+   ```
+
+   但是可以用`Runnable`接口，原因在于同一个对象可以运用上不同的线程上
+
+   ```java
+   public class Main {
+       public static void main(String[] args) throws InterruptedException {
+           Worker worker = new Worker();
+           Thread worker1 = new Thread(worker);
+           Thread worker2 = new Thread(worker);
+   
+           worker1.start();
+           worker2.start();
+           worker1.join();
+           worker2.join();
+   
+           System.out.println(Worker.cnt);
+       }
+   }
+   
+   ```
+
+3. **wait与notify**
+
+   1. wait：线程阻塞
+   2. notify唤醒其他被阻塞的线程
+
+----
 
 ## 项目（King of bot）
 

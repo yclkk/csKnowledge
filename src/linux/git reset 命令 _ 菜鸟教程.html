@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)https://www.runoob.com/git/git-reset.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>git reset 命令 | 菜鸟教程</title>
+
+  <meta name="robots" content="max-image-preview:large">
+<link rel="stylesheet" id="classic-theme-styles-css" href="./git reset 命令 _ 菜鸟教程_files/classic-themes.min.css" type="text/css" media="all">
+<link rel="canonical" href="http://www.runoob.com/git/git-reset.html">
+<meta name="keywords" content="git reset 命令">
+<meta name="description" content="git reset 命令 Git 基本操作   git reset 命令用于回退版本，可以指定退回某一次提交的版本。 git reset 命令语法格式如下：  git reset [--soft | --mixed | --hard] [HEAD]   --mixed 为默认，可以不用带该参数，用于重置暂存区的文件与上一次的提交(commit)保持一致，工作区文件内容保持不变。 git reset  [HEAD]  实例：  $ git..">
+		
+	<link rel="shortcut icon" href="https://static.runoob.com/images/favicon.ico">
+	<link rel="stylesheet" href="./git reset 命令 _ 菜鸟教程_files/style.css" type="text/css" media="all">	
+	<link rel="stylesheet" href="./git reset 命令 _ 菜鸟教程_files/font-awesome.min.css" media="all">	
+  <!--[if gte IE 9]><!-->
+  <script src="./git reset 命令 _ 菜鸟教程_files/f(7).txt"></script><script src="./git reset 命令 _ 菜鸟教程_files/f(8).txt" id="google_shimpl"></script><script type="text/javascript" async="" src="./git reset 命令 _ 菜鸟教程_files/analytics.js"></script><script src="./git reset 命令 _ 菜鸟教程_files/hm.js"></script><script src="./git reset 命令 _ 菜鸟教程_files/jquery.min.js"></script>
+  <!--<![endif]-->
+  <!--[if lt IE 9]>
+     <script src="https://cdn.staticfile.org/jquery/1.9.1/jquery.min.js"></script>
+     <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+  <![endif]-->
+  <link rel="apple-touch-icon" href="https://static.runoob.com/images/icon/mobile-icon.png">
+  <meta name="apple-mobile-web-app-title" content="菜鸟教程">
+<link rel="stylesheet" type="text/css" href="./git reset 命令 _ 菜鸟教程_files/prettify.css"><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><link rel="preload" href="./git reset 命令 _ 菜鸟教程_files/f(9).txt" as="script"><script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/f(9).txt"></script></head>
+<body style="">
+
+<!--  头部 -->
+<div class="container logo-search">
+
+  <div class="col search row-search-mobile">
+    <form action="https://www.runoob.com/git/index.php">
+      <input class="placeholder" placeholder="搜索……" name="s" autocomplete="off">
+      
+    </form>
+  </div>
+
+  <div class="row">
+    <div class="col logo">
+      <h1><a href="https://www.runoob.com/">菜鸟教程 -- 学的不仅是技术，更是梦想！</a></h1>
+    </div>
+        <div class="col right-list"> 
+    <button class="btn btn-responsive-nav btn-inverse" data-toggle="collapse" data-target=".nav-main-collapse" id="pull" style=""> <i class="fa fa-navicon"></i> </button>
+    </div>
+        
+    <div class="col search search-desktop last">
+      <div class="search-input">
+      <form action="https://www.runoob.com/" target="_blank">
+        <input class="placeholder" id="s" name="s" placeholder="搜索……" autocomplete="off" style="height: 44px;">
+      </form>
+      
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 导航栏 -->
+<!-- 导航栏 -->
+<div class="container navigation">
+	<div class="row">
+		<div class="col nav">
+			<ul class="pc-nav" id="runoob-detail-nav">
+				<li><a href="https://www.runoob.com/">首页</a></li>
+				<li><a href="https://www.runoob.com/html/html-tutorial.html">HTML</a></li>
+				<li><a href="https://www.runoob.com/css/css-tutorial.html">CSS</a></li>
+				<li><a href="https://www.runoob.com/js/js-tutorial.html">JavaScript</a></li>
+				<li><a href="javascript:void(0);" data-id="vue">Vue</a></li>
+				<li><a href="javascript:void(0);" data-id="bootstrap">Bootstrap</a></li>
+				<li><a href="https://www.runoob.com/nodejs/nodejs-tutorial.html">NodeJS</a></li>
+				<li><a href="https://www.runoob.com/python3/python3-tutorial.html">Python3</a></li>
+				<li><a href="https://www.runoob.com/python/python-tutorial.html">Python2</a></li>
+				<li><a href="https://www.runoob.com/java/java-tutorial.html">Java</a></li>
+				<li><a href="https://www.runoob.com/cprogramming/c-tutorial.html">C</a></li>
+				<li><a href="https://www.runoob.com/cplusplus/cpp-tutorial.html">C++</a></li>
+				<li><a href="https://www.runoob.com/csharp/csharp-tutorial.html">C#</a></li>
+				<li><a href="https://www.runoob.com/go/go-tutorial.html">Go</a></li>
+				<li><a href="https://www.runoob.com/sql/sql-tutorial.html">SQL</a></li>
+				<li><a href="https://www.runoob.com/linux/linux-tutorial.html">Linux</a></li>
+				<li><a href="https://www.runoob.com/jquery/jquery-tutorial.html">jQuery</a></li>
+				<li><a href="https://www.runoob.com/browser-history">本地书签</a></li>
+				<!--
+			
+				<li><a href="/w3cnote/knowledge-start.html" style="font-weight: bold;" onclick="_hmt.push(['_trackEvent', '星球', 'click', 'start'])" title="我的圈子">我的圈子</a></li>				
+				<li><a href="javascript:;" class="runoob-pop">登录</a></li>
+				-->
+      		</ul>
+			<ul class="mobile-nav">
+				<li><a href="https://www.runoob.com/">首页</a></li>
+				<li><a href="https://www.runoob.com/html/html-tutorial.html">HTML</a></li>
+				<li><a href="https://www.runoob.com/css/css-tutorial.html">CSS</a></li>
+				<li><a href="https://www.runoob.com/js/js-tutorial.html">JS</a></li>
+				<li><a href="https://www.runoob.com/browser-history">本地书签</a></li>
+				<li><a href="javascript:void(0)" class="search-reveal">Search</a> </li>
+			</ul>
+			
+		</div>
+	</div>
+</div>
+
+<div class="container sub-navigation sub-navigation-articles" style="display:none">
+	<div class="row">
+		<div class="col nav-sub">
+		<ul id="python">
+			<li class="cat-item"><a href="https://www.runoob.com/python3/python3-tutorial.html">Python3 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+			<li class="cat-item"><a href="https://www.runoob.com/python/python-tutorial.html">Python2 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+		</ul>
+		<ul id="vue">
+			<li class="cat-item"><a href="https://www.runoob.com/vue3/vue3-tutorial.html">Vue3 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+			<li class="cat-item"><a href="https://www.runoob.com/vue/vue-tutorial.html">vue2 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+		</ul>
+
+		<ul id="bootstrap">
+			<li class="cat-item"><a href="https://www.runoob.com/bootstrap/bootstrap-tutorial.html">Bootstrap3 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+			<li class="cat-item"><a href="https://www.runoob.com/bootstrap4/bootstrap4-tutorial.html">Bootstrap4 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+			<li class="cat-item"><a href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+			<li class="cat-item"><a href="https://www.runoob.com/bootstrap/bootstrap-v2-tutorial.html">Bootstrap2 教程 <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+		</ul>
+		</div>
+	</div>
+</div><!--  内容  -->
+<div class="container main">
+	<!-- 中间 -->
+	<div class="row">
+	
+<div class="runoob-col-md2">
+<div class="left-column site-fix" style="width: 188px;">
+	<div class="tab" style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+	<i class="fa fa-list" aria-hidden="true"></i> 
+	<span>Git 教程</span>
+	<a data-cate="169" href="javascript:void(0);" title="夜间模式" id="moon"><i class="fa fa-moon-o" aria-hidden="true" style="line-height: 28px;font-size: 1.2em;margin: 2px 4px 0;"></i></a>
+	<a data-cate="169" style="display:none;" href="javascript:void(0);" title="日间模式" id="sun"><i class="fa fa-sun-o" aria-hidden="true" style="line-height: 28px;font-size: 1.2em;margin: 2px 4px 0;line-height: 28px;
+}"></i></a>
+
+	</div>
+	<div class="sidebar-box gallery-list">
+		<div class="design" id="leftcolumn">
+						<a target="_top" title="Git 教程" href="https://www.runoob.com/git/git-tutorial.html">
+			Git 教程			</a>
+						<a target="_top" title="Git 安装配置" href="https://www.runoob.com/git/git-install-setup.html">
+			Git 安装配置			</a>
+						<a target="_top" title="Git 工作流程" href="https://www.runoob.com/git/git-workflow.html">
+			Git 工作流程			</a>
+			<a target="_top" title="Git 工作区、暂存区和版本库" href="https://www.runoob.com/git/git-workspace-index-repo.html"> Git 工作区、暂存区和版本库 </a>			<a target="_top" title="Git 创建仓库" href="https://www.runoob.com/git/git-create-repository.html">
+			Git 创建仓库			</a>
+						<a target="_top" title="Git 基本操作" href="https://www.runoob.com/git/git-basic-operations.html" style="background-color: rgb(150, 185, 125); font-weight: bold; color: rgb(255, 255, 255);"><i class="fa fa-tag" aria-hidden="true"></i>
+			Git 基本操作			</a>
+						<a target="_top" title="Git 分支管理" href="https://www.runoob.com/git/git-branch.html">
+			Git 分支管理			</a>
+						<a target="_top" title="Git 查看提交历史" href="https://www.runoob.com/git/git-commit-history.html">
+			Git 查看提交历史			</a>
+						<a target="_top" title="Git 标签" href="https://www.runoob.com/git/git-tag.html">
+			Git 标签			</a>
+						<a target="_top" title="Git 远程仓库(Github)" href="https://www.runoob.com/git/git-remote-repo.html">
+			Git Github			</a>
+						<a target="_top" title="Git 服务器搭建" href="https://www.runoob.com/git/git-server.html">
+			Git 服务器搭建			</a>
+			<a target="_top" title="Git Gitee" href="https://www.runoob.com/git/source-tree-intro.html"> Sourcetree </a>			<a target="_top" title="Git 测验" href="https://www.runoob.com/git/git-quiz.html">
+			Git 测验			</a>
+				
+		</div>
+	</div>	
+</div>
+</div>	<div class="col middle-column">
+		
+	
+	<div class="article">
+			<div class="article-heading-ad" style="display: none;">
+		
+		</div>
+		<div class="previous-next-links">
+			<div class="previous-design-link"><a href="https://www.runoob.com/git/git-create-repository.html"><i style="font-size:16px;" class="fa fa-arrow-left" aria-hidden="true"></i></a> <a href="https://www.runoob.com/git/git-create-repository.html" rel="prev" title="Git 创建仓库">Git 创建仓库</a> </div>
+			<div class="next-design-link"><a href="https://www.runoob.com/git/git-branch.html" rel="next" title="Git 分支管理">Git 分支管理</a> <a href="https://www.runoob.com/git/git-branch.html"><i style="font-size:16px;" class="fa fa-arrow-right" aria-hidden="true"></i></a></div>
+		</div>
+		<div class="article-body">
+		
+			<div class="article-intro" id="content">
+			
+			<h1>git reset 命令</h1>
+<p><a href="https://www.runoob.com/git/git-basic-operations.html"><img decoding="async" class="navup" src="./git reset 命令 _ 菜鸟教程_files/up.gif" alt="Git 基本操作">Git 基本操作</a></p><hr>
+
+
+<p>git reset 命令用于回退版本，可以指定退回某一次提交的版本。</p>
+<p>git reset 命令语法格式如下：</p>
+
+<pre class="prettyprint prettyprinted" style=""><span class="pln">git reset </span><span class="pun">[--</span><span class="pln">soft </span><span class="pun">|</span><span class="pln"> </span><span class="pun">--</span><span class="pln">mixed </span><span class="pun">|</span><span class="pln"> </span><span class="pun">--</span><span class="pln">hard</span><span class="pun">]</span><span class="pln"> </span><span class="pun">[</span><span class="pln">HEAD</span><span class="pun">]</span></pre>
+<p>
+
+<strong>--mixed</strong> 为默认，可以不用带该参数，用于重置暂存区的文件与上一次的提交(commit)保持一致，工作区文件内容保持不变。</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">git reset  </span><span class="pun">[</span><span class="pln">HEAD</span><span class="pun">]</span><span class="pln"> </span></pre>
+<p>实例：</p>
+
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git reset HEAD</span><span class="pun">^</span><span class="pln">            </span><span class="com"># 回退所有内容到上一个版本  </span><span class="pln">
+$ git reset HEAD</span><span class="pun">^</span><span class="pln"> hello</span><span class="pun">.</span><span class="pln">php  </span><span class="com"># 回退 hello.php 文件的版本到上一个版本  </span><span class="pln">
+$ git  reset  </span><span class="lit">052e</span><span class="pln">           </span><span class="com"># 回退到指定版本</span></pre>
+<p>
+<strong>--soft</strong> 参数用于回退到某个版本：</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">git reset </span><span class="pun">--</span><span class="pln">soft HEAD</span></pre>
+<p>实例：</p>
+
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git reset </span><span class="pun">--</span><span class="pln">soft HEAD</span><span class="pun">~</span><span class="lit">3</span><span class="pln">   </span><span class="com"># 回退上上上一个版本 </span></pre>
+<p>
+<strong>--hard</strong> 参数撤销工作区中所有未提交的修改内容，将暂存区与工作区都回到上一次版本，并删除之前的所有信息提交：</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">git reset </span><span class="pun">--</span><span class="pln">hard HEAD</span></pre><p>实例：</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git reset </span><span class="pun">--</span><span class="pln">hard HEAD</span><span class="pun">~</span><span class="lit">3</span><span class="pln">  </span><span class="com"># 回退上上上一个版本  </span><span class="pln">
+$ git reset </span><span class="pun">–</span><span class="pln">hard bae128  </span><span class="com"># 回退到某个版本回退点之前的所有信息。 </span><span class="pln">
+$ git reset </span><span class="pun">--</span><span class="pln">hard origin</span><span class="pun">/</span><span class="pln">master    </span><span class="com"># 将本地的状态回退到和远程的一样 </span></pre> 
+<p><strong>注意：</strong>谨慎使用 <strong>–-hard</strong> 参数，它会删除回退点之前的所有信息。</p>
+<p><strong>HEAD 说明：</strong></p>
+<ul>
+<li><p>HEAD 表示当前版本</p></li>
+<li><p>HEAD^ 上一个版本</p></li>
+<li><p>HEAD^^ 上上一个版本</p></li>
+<li><p>HEAD^^^ 上上上一个版本</p><p></p></li>
+<li><p>以此类推...</p><p></p></li>
+</ul>
+可以使用 ～数字表示
+<ul>
+<li><p>HEAD~0 表示当前版本</p></li>
+<li><p>HEAD~1 上一个版本</p></li>
+<li><p>HEAD^2 上上一个版本</p></li>
+<li><p>HEAD^3 上上上一个版本</p></li>
+<li><p>以此类推...</p><p></p></li>
+</ul>
+
+<h3>git reset HEAD</h3>
+<p>git reset HEAD 命令用于取消已缓存的内容。</p>
+<p>我们先改动文件 README 文件，内容如下：</p>
+<pre class="prettyprint prettyprinted" style=""><span class="com"># Runoob Git 测试</span><span class="pln">
+</span><span class="com"># 菜鸟教程 </span></pre>
+<p>hello.php 文件修改为：</p><pre class="prettyprint prettyprinted" style=""><span class="pun">&lt;?</span><span class="pln">php
+echo </span><span class="str">'菜鸟教程：www.runoob.com'</span><span class="pun">;</span><span class="pln">
+echo </span><span class="str">'菜鸟教程：www.runoob.com'</span><span class="pun">;</span><span class="pln">
+echo </span><span class="str">'菜鸟教程：www.runoob.com'</span><span class="pun">;</span><span class="pln">
+</span><span class="pun">?&gt;</span></pre>
+<p>现在两个文件修改后，都提交到了缓存区，我们现在要取消其中一个的缓存，操作如下：
+</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git status </span><span class="pun">-</span><span class="pln">s
+    M README
+    M hello</span><span class="pun">.</span><span class="pln">php
+$ git add </span><span class="pun">.</span><span class="pln">
+$ git status </span><span class="pun">-</span><span class="pln">s
+M  README
+M  hello</span><span class="pun">.</span><span class="pln">php
+$ git reset HEAD hello</span><span class="pun">.</span><span class="pln">php 
+</span><span class="typ">Unstaged</span><span class="pln"> changes after reset</span><span class="pun">:</span><span class="pln">
+M&nbsp;&nbsp;&nbsp;&nbsp;hello</span><span class="pun">.</span><span class="pln">php
+$ git status </span><span class="pun">-</span><span class="pln">s
+M  README
+    M hello</span><span class="pun">.</span><span class="pln">php</span></pre>
+<p>现在你执行 git commit，只会将 README 文件的改动提交，而 hello.php 是没有的。</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git commit </span><span class="pun">-</span><span class="pln">m </span><span class="str">'修改'</span><span class="pln">
+</span><span class="pun">[</span><span class="pln">master f50cfda</span><span class="pun">]</span><span class="pln"> </span><span class="pun">修改</span><span class="pln">
+    </span><span class="lit">1</span><span class="pln"> file changed</span><span class="pun">,</span><span class="pln"> </span><span class="lit">1</span><span class="pln"> insertion</span><span class="pun">(+)</span><span class="pln">
+$ git status </span><span class="pun">-</span><span class="pln">s
+    M hello</span><span class="pun">.</span><span class="pln">php</span></pre>
+<p>可以看到 hello.php 文件的修改并未提交。</p>
+<p>这时我们可以使用以下命令将 hello.php 的修改提交：</p>
+<pre class="prettyprint prettyprinted" style=""><span class="pln">$ git commit </span><span class="pun">-</span><span class="pln">am </span><span class="str">'修改 hello.php 文件'</span><span class="pln">
+</span><span class="pun">[</span><span class="pln">master </span><span class="lit">760f74d</span><span class="pun">]</span><span class="pln"> </span><span class="pun">修改</span><span class="pln"> hello</span><span class="pun">.</span><span class="pln">php </span><span class="pun">文件</span><span class="pln">
+    </span><span class="lit">1</span><span class="pln"> file changed</span><span class="pun">,</span><span class="pln"> </span><span class="lit">1</span><span class="pln"> insertion</span><span class="pun">(+)</span><span class="pln">
+$ git status
+</span><span class="typ">On</span><span class="pln"> branch master
+nothing to commit</span><span class="pun">,</span><span class="pln"> working directory clean</span></pre>
+<p>简而言之，执行 git reset HEAD 以取消之前 git add 添加，但不希望包含在下一提交快照中的缓存。</p>
+
+
+<br><hr><p><a href="https://www.runoob.com/git/git-basic-operations.html"><img decoding="async" class="navup" src="./git reset 命令 _ 菜鸟教程_files/up.gif" alt="Git 基本操作">Git 基本操作</a></p>			<!-- 其他扩展 -->
+						
+			</div>
+			
+		</div>
+		
+		<div class="previous-next-links">
+			<div class="previous-design-link"><a href="https://www.runoob.com/git/git-create-repository.html"><i style="font-size:16px;" class="fa fa-arrow-left" aria-hidden="true"></i></a> <a href="https://www.runoob.com/git/git-create-repository.html" rel="prev" title="Git 创建仓库">Git 创建仓库</a> </div>
+			<div class="next-design-link"><a href="https://www.runoob.com/git/git-branch.html" rel="next" title="Git 分支管理">Git 分支管理</a> <a href="https://www.runoob.com/git/git-branch.html"><i style="font-size:16px;" class="fa fa-arrow-right" aria-hidden="true"></i></a></div>
+		</div>
+		<!-- 笔记列表 -->
+		<style>
+.wrapper {
+  /*text-transform: uppercase; */
+  background: #ececec;
+  color: #555;
+  cursor: help;
+  font-family: "Gill Sans", Impact, sans-serif;
+  font-size: 20px;
+  position: relative;
+  text-align: center;
+  width: 200px;
+  -webkit-transform: translateZ(0); /* webkit flicker fix */
+  -webkit-font-smoothing: antialiased; /* webkit text rendering fix */
+}
+
+.wrapper .tooltip {
+  white-space: nowrap;
+  font-size: 14px;
+  text-align: left;
+  background: #96b97d;
+  bottom: 100%;
+  color: #fff;
+  display: block;
+  left: -25px;
+  margin-bottom: 15px;
+  opacity: 0;
+  padding: 14px;
+  pointer-events: none;
+  position: absolute;
+  
+  -webkit-transform: translateY(10px);
+     -moz-transform: translateY(10px);
+      -ms-transform: translateY(10px);
+       -o-transform: translateY(10px);
+          transform: translateY(10px);
+  -webkit-transition: all .25s ease-out;
+     -moz-transition: all .25s ease-out;
+      -ms-transition: all .25s ease-out;
+       -o-transition: all .25s ease-out;
+          transition: all .25s ease-out;
+  -webkit-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+     -moz-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+      -ms-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+       -o-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+          box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+}
+.tooltip a {
+	color:#fff;
+}
+/* This bridges the gap so you can mouse into the tooltip without it disappearing */
+.wrapper .tooltip:before {
+  bottom: -20px;
+  content: " ";
+  display: block;
+  height: 20px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}  
+
+/* CSS Triangles - see Trevor's post */
+.wrapper .tooltip:after {
+  border-left: solid transparent 10px;
+  border-right: solid transparent 10px;
+  border-top: solid #96b97d 10px;
+  bottom: -10px;
+  content: " ";
+  height: 0;
+  left: 20%;
+  margin-left: -13px;
+  position: absolute;
+  width: 0;
+}
+.wrapper .tooltip1 {
+	margin-left: 50px;
+	padding-top: 0px;
+}
+/*
+.wrapper:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-transform: translateY(0px);
+     -moz-transform: translateY(0px);
+      -ms-transform: translateY(0px);
+       -o-transform: translateY(0px);
+          transform: translateY(0px);
+}
+*/
+/* IE can just show/hide with no transition */
+.lte8 .wrapper .tooltip {
+  display: none;
+}
+
+.lte8 .wrapper:hover .tooltip {
+  display: block;
+}
+
+</style>
+
+<link rel="stylesheet" href="./git reset 命令 _ 菜鸟教程_files/upvotejs.css">
+<script src="./git reset 命令 _ 菜鸟教程_files/upvotejs.vanilla.js"></script>
+<script src="./git reset 命令 _ 菜鸟教程_files/upvotejs.jquery.js"></script>
+<div id="respond" class="no_webshot"> 
+		<div class="comment-signarea" style=" padding: 20px 20px;"> 
+	<h3 class="text-muted" id="share_code" style="color: #799961;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i> 点我分享笔记</h3>
+	<!--
+	<p style="font-size:14px;">笔记需要是本篇文章的内容扩展！</p><br>
+	<p style="font-size:12px;"><a href="//www.runoob.com/tougao" target="_blank">文章投稿，可点击这里</a></p>
+	<p style="font-size:14px;"><a href="/w3cnote/runoob-user-test-intro.html#invite" target="_blank">注册邀请码获取方式</a></p>
+		<h3 class="text-muted"><i class="fa fa-info-circle" aria-hidden="true"></i> 分享笔记前必须<a href="javascript:;" class="runoob-pop">登录</a>！</h3>
+		<p><a href="/w3cnote/runoob-user-test-intro.html#invite" target="_blank">注册邀请码获取方式</a></p>-->
+	</div>
+		
+	<form action="https://www.runoob.com/wp-content/themes/runoob/option/addnote.php" method="post" id="commentform" style="display:none;"><div id="comment-status" style="display:none;"></div>
+		<div class="comt">
+			<div class="comt-title">
+				<i style="font-size:36px;" class="fa fa-user-circle" aria-hidden="true"></i>				<p><a id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+			<div class="simditor simditor-mac">
+  <div class="simditor-wrapper"><div class="simditor-toolbar" style="top: 0px; width: 0px; left: 0px;"><ul><li><a tabindex="-1" unselectable="on" class="toolbar-item toolbar-item-bold" href="javascript:;" title="加粗文字 ( Cmd + b )"><span class="simditor-icon simditor-icon-bold"></span></a></li><li><a tabindex="-1" unselectable="on" class="toolbar-item toolbar-item-code" href="javascript:;" title="插入代码"><span class="simditor-icon simditor-icon-code"></span></a></li><li><a tabindex="-1" unselectable="on" class="toolbar-item toolbar-item-ul" href="javascript:;" title="无序列表 ( Cmd + . )"><span class="simditor-icon simditor-icon-list-ul"></span></a></li><li><a tabindex="-1" unselectable="on" class="toolbar-item toolbar-item-ol" href="javascript:;" title="有序列表 ( Cmd + / )"><span class="simditor-icon simditor-icon-list-ol"></span></a></li><li><a tabindex="-1" unselectable="on" class="toolbar-item toolbar-item-image" href="javascript:;" title="插入图片"><span class="simditor-icon simditor-icon-picture-o"></span></a></li></ul></div>
+    <div class="simditor-placeholder" style="display: block; top: 1px;">写笔记...</div>
+    <div class="simditor-body" contenteditable="true"><p><br></p></div>
+  <div id="mded"></div></div>
+<div class="simditor-popover code-popover"><div class="code-settings">
+  <div class="settings-field">
+    <select class="select-lang">
+      <option value="-1">选择程序语言</option>
+    <option value="bash">Bash</option><option value="c++">C++</option><option value="cs">C#</option><option value="css">CSS</option><option value="erlang">Erlang</option><option value="less">Less</option><option value="sass">Sass</option><option value="diff">Diff</option><option value="coffeescript">CoffeeScript</option><option value="html">HTML,XML</option><option value="json">JSON</option><option value="java">Java</option><option value="js">JavaScript</option><option value="markdown">Markdown</option><option value="oc">Objective C</option><option value="php">PHP</option><option value="parl">Perl</option><option value="python">Python</option><option value="ruby">Ruby</option><option value="sql">SQL</option></select>
+  </div>
+</div></div><div class="simditor-popover image-popover"><div class="link-settings">
+  <div class="settings-field">
+    <label>图片地址</label>
+    <input class="image-src" type="text" tabindex="1">
+    
+  </div>
+  <div class="settings-field">
+    <label>图片描述</label>
+    <input class="image-alt" id="image-alt" type="text" tabindex="1">
+  </div>
+  <div class="settings-field">
+    <label>图片尺寸</label>
+    <input class="image-size" id="image-width" type="text" tabindex="2">
+    <span class="times">×</span>
+    <input class="image-size" id="image-height" type="text" tabindex="3">
+    <a class="btn-restore" href="javascript:;" title="还原图片尺寸" tabindex="-1">
+      <span class="simditor-icon simditor-icon-undo"></span>
+    </a>
+  </div>
+</div></div></div>
+			
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type="hidden" name="comment_post_ID" value="22705" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</div>
+					<button type="submit" name="submit" id="submit" tabindex="5"><i class="fa fa-pencil" aria-hidden="true"></i> 分享笔记</button>
+				</div>
+			</div>
+		
+				
+					<div class="comt-comterinfo"> 
+						<ul id="comment-author-info">
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">引用地址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="引用地址"><span class="text-muted">引用地址</span></li>
+						</ul>
+					</div>
+				
+			
+		</div>
+
+	</form>
+	</div>
+<script type="text/javascript">
+$(function() {
+	//初始化编辑器
+	
+	var editor = new Simditor({
+	  textarea: $('#mded'),
+	  placeholder: '写笔记...',
+	  upload:false,
+	 // upload: {url:'/api/comment_upload_file.php',params: null,fileKey: 'upload_file',connectionCount: 1,leaveConfirm: '文件正在上传，您确定离开?'},
+	  defaultImage: 'https://www.runoob.com/images/logo.png',
+	  codeLanguages: '',
+	  autosave: 'editor-content',
+	  toolbar: [  'bold','code','ul','ol','image' ]
+	});
+	editor.on('selectionchanged', function() {
+		$(".code-popover").hide();
+	});
+
+	// 提交数据
+	$("#share_code").click(function() {
+		$(".comment-signarea").hide();
+		$("#commentform").show();
+		
+	});
+	$("#user_add_note").click(function() {
+		$(".comment-signarea").hide();
+		$("#commentform").show();
+		$('html, body').animate({
+       	    scrollTop: $("#respond").offset().top
+    	}, 200);
+	});
+
+	// 提交笔记
+	var commentform=$('#commentform');
+	commentform.prepend('<div id="comment-status" style="display:none;" ></div>');
+	var statusdiv=$('#comment-status');
+	
+	commentform.submit(function(e){
+		e.preventDefault();
+		var noteContent = editor.getValue();
+		// console.log(noteContent);
+		noteContent = noteContent.replace(/<pre><code>/g,"<pre>");
+		noteContent = noteContent.replace(/<\/code><\/pre>/g,"</pre>");
+		
+		// 系列化表单数据
+		var comment_parent = 0;
+		var is_user_logged_in = $("#is_user_logged_in").val();
+		var comment_post_ID =  22705;
+		var _wp_unfiltered_html_comment = $("#_wp_unfiltered_html_comment").val();
+		var comment = noteContent;
+		var author = $("#author").val();
+		var url = $("#url").val();
+		var email = $("#email").val();
+		if(isBlank(author) && is_user_logged_in==0) {
+			statusdiv.html('<p  class="ajax-error">请输入昵称！</p>').show();
+		} else if(isBlank(email)  && is_user_logged_in==0) {
+			statusdiv.html('<p  class="ajax-error">请输入邮箱！</p>').show();
+		} else {
+			// var formdata=commentform.serialize() + "&comment=" + noteContent ;
+			// 添加状态信息
+			statusdiv.html('<p>Processing...</p>').show();
+			// 获取表单提交地址
+			var formurl=commentform.attr('action');
+			
+			// 异步提交
+			$.ajax({
+					type: 'post',
+					url: formurl,
+					dataType:'json',
+					data: {"comment_parent":comment_parent,"comment_post_ID":comment_post_ID, "_wp_unfiltered_html_comment":_wp_unfiltered_html_comment,"comment":comment,"url":url, "email":email,"author":author},
+					error: function(XMLHttpRequest, textStatus, errorThrown){
+					statusdiv.html('<p class="ajax-error" >数据不完整或表单提交太快了！</p>').show();
+				},
+				success: function(data, textStatus){
+					if(data.errorno=="0") {
+						$("#submit").prop('disabled', true);
+						statusdiv.html('<p class="ajax-success" >笔记已提交审核，感谢分享笔记！</p>').show();
+						alert('笔记已提交审核，感谢分享笔记！');
+					}else{
+						statusdiv.html('<p class="ajax-error" >'+data.msg+'</p>').show();
+					}
+					commentform.find('textarea[name=comment]').val('');
+				}
+			});
+			setTimeout(function(){
+		        $("#submit").prop('disabled', false);
+		    }, 10*1000);
+		}
+		return false;
+
+	});
+	$(".comt-author").click(function() {
+		href = $(this).children("a").attr("href");
+		if(href.indexOf("/note/")!=-1) {
+			var win = window.open(href, '_blank');
+  			win.focus();
+		}
+	});
+	$(".comt-meta span").hover(function(){
+		$(this).children(".tooltip").css({ "opacity": 1, "pointer-events": "auto"});
+	},function(){
+		$(this).children(".tooltip").removeAttr("style");
+	});
+	/*
+	$(".wrapper i").hover(function(){
+		$(this).siblings(".tooltip").css({ "opacity": 1, "pointer-events": "auto"});
+	},function(){
+		$(this).siblings(".tooltip").css({ "opacity": 0, "pointer-events": "auto"});
+	});
+	*/
+	//Upvote.create('runoobvote-id', {callback: vote_callback});
+	var ajaxurl = 'https://www.runoob.com/wp-admin/admin-ajax.php';
+	var callback = function(data) {
+		//console.log($('#runoobvote-id').upvote('upvoted'));
+		//console.log($('#runoobvote-id').upvote('downvoted'));
+		//console.log(data);
+		_vote_action = data.action;
+		id_arr = data.id.split('-');
+		um_id= id_arr[2];
+		//console.log(um_id);
+		
+		var re = /^[1-9]+/;
+		if (re.test(um_id)) { 
+			var ajax_data = {
+				_vote_action: _vote_action,
+				action: "pinglun_zan",
+				um_id: um_id,
+				um_action: "ding"
+			};
+			//console.log(ajax_data);
+			$.post(ajaxurl,ajax_data,function(status){
+				//if(status.vote_num>999) {
+				//	_voteHtml = '<span style="display: block; text-align: center;font-size: 20px; color: #6a737c; margin: 8px 0;">'+kFormatter(status.vote_num) +'</span>';
+				//	$("#runoobvote-id-" + um_id + " .count").hide().after(_voteHtml);
+				//}
+				
+			});
+		}
+	};
+	if($('#comments').length && $('.upvotejs').length){
+		$('.upvotejs').upvote({id: 22705, callback: callback});
+	
+		$.post(ajaxurl,{"action":"pinglun_zan","postid":22705},function(data){  
+			$(data).each(function(key,value) {
+				$("#runoobvote-id-" + value.commid + " .upvote").addClass(value.upvotejs_class);
+				$("#runoobvote-id-" + value.commid + " .downvote").addClass(value.downvote_class);
+				$("#runoobvote-id-" + value.commid + " .count").text(value.upvote_count);
+			})
+		},'json');
+		
+	}
+	
+	
+});
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
+}
+function kFormatter(num) {
+	// return num;
+    return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+}
+
+</script>
+
+<link rel="stylesheet" href="./git reset 命令 _ 菜鸟教程_files/qa.css">
+<link rel="stylesheet" type="text/css" href="./git reset 命令 _ 菜鸟教程_files/simditor.min.css">
+<script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/module.js"></script>
+<script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/hotkeys.js"></script>
+<script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/uploader.js"></script>
+<script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/simditor.min.js"></script>
+<script type="text/javascript" src="./git reset 命令 _ 菜鸟教程_files/simditor-autosave.js"></script>
+		<div class="sidebar-box ">
+				<div id="ad-336280">
+
+		<style>	
+.responsive_ad1 { display:none; }
+@media(min-width: 800px) { .responsive_ad1 {  display:block;margin:0 auto;} }
+
+</style>
+<script async="" src="./git reset 命令 _ 菜鸟教程_files/f(10).txt"></script>
+<!-- 移动版 自动调整 -->
+<ins class="adsbygoogle responsive_ad1" style="min-width: 400px; max-width: 728px; width: 728px; height: 90px;" data-ad-client="ca-pub-5751451760833794" data-ad-slot="1691338467" data-full-width-responsive="true" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_0_host" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none; height: 90px; width: 728px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:728px;height:90px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./git reset 命令 _ 菜鸟教程_files/ads.html" data-google-container-id="a!1" data-google-query-id="CLr9jfKewfsCFYzSlgodEIAGng" data-load-complete="true"></iframe></div></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+		</div>
+				</div>
+		
+	</div>
+</div>
+	
+
+<!-- 右边栏 -->
+<div class="fivecol last right-column">
+
+<style>
+.sidebar-tree .double-li {
+    width:300px;
+}
+.sidebar-tree .double-li li {
+    width: 44%;
+    line-height: 1.5em;
+    border-bottom: 1px solid #ccc;
+    float: left;
+    display: inline;
+}
+</style>
+
+    
+        <div class="sidebar-box re-box re-box-large">
+        <div class="sidebar-box recommend-here" style="margin: 0 auto;">
+            <a href="javascript:void(0);" style="font-size: 16px; color:#64854c;font-weight:bold;"> <i class="fa fa-list" aria-hidden="true"></i> 分类导航</a>
+        </div>
+    <div class="sidebar-box sidebar-cate">
+        
+        <div class="sidebar-tree">
+            <ul><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> HTML / CSS</a><ul class="double-li"><li><a title="HTML 教程" href="https://www.runoob.com/html/html-tutorial.html">HTML 教程</a></li><li><a title="HTML5 教程" href="https://www.runoob.com/html/html5-intro.html">HTML5 教程</a></li><li><a title="CSS 教程" href="https://www.runoob.com/css/css-tutorial.html">CSS 教程</a></li><li><a title="CSS3 教程" href="https://www.runoob.com/css3/css3-tutorial.html">CSS3 教程</a></li><li><a title="Bootstrap3 教程" href="https://www.runoob.com/bootstrap/bootstrap-tutorial.html">Bootstrap3 教程</a></li><li><a title="Bootstrap4 教程" href="https://www.runoob.com/bootstrap4/bootstrap4-tutorial.html">Bootstrap4 教程</a></li><li><a title="Bootstrap5 教程" href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程</a></li><li><a title="Font Awesome 教程" href="https://www.runoob.com/font-awesome/fontawesome-tutorial.html">Font Awesome 教程</a></li><li><a title="Foundation 教程" href="https://www.runoob.com/foundation/foundation-tutorial.html">Foundation 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> JavaScript</a><ul class="double-li"><li><a title="JavaScript 教程" href="https://www.runoob.com/js/js-tutorial.html">JavaScript 教程</a></li><li><a title="HTML DOM 教程" href="https://www.runoob.com/htmldom/htmldom-tutorial.html">HTML DOM 教程</a></li><li><a title="jQuery 教程" href="https://www.runoob.com/jquery/jquery-tutorial.html">jQuery 教程</a></li><li><a title="AngularJS 教程" href="https://www.runoob.com/angularjs/angularjs-tutorial.html">AngularJS 教程</a></li><li><a title="AngularJS2 教程" href="https://www.runoob.com/angularjs2/angularjs2-tutorial.html">AngularJS2 教程</a></li><li><a title="Vue.js 教程" href="https://www.runoob.com/vue2/vue-tutorial.html">Vue.js 教程</a></li><li><a title="Vue3 教程" href="https://www.runoob.com/vue3/vue3-tutorial.html">Vue3 教程</a></li><li><a title="React 教程" href="https://www.runoob.com/react/react-tutorial.html">React 教程</a></li><li><a title="TypeScript 教程" href="https://www.runoob.com/typescript/ts-tutorial.html">TypeScript 教程</a></li><li><a title="jQuery UI 教程" href="https://www.runoob.com/jqueryui/jqueryui-tutorial.html">jQuery UI 教程</a></li><li><a title="jQuery EasyUI 教程" href="https://www.runoob.com/jeasyui/jqueryeasyui-tutorial.html">jQuery EasyUI 教程</a></li><li><a title="Node.js 教程" href="https://www.runoob.com/nodejs/nodejs-tutorial.html">Node.js 教程</a></li><li><a title="AJAX 教程" href="https://www.runoob.com/ajax/ajax-tutorial.html">AJAX 教程</a></li><li><a title="JSON 教程" href="https://www.runoob.com/json/json-tutorial.html">JSON 教程</a></li><li><a title="Echarts 教程" href="https://www.runoob.com/echarts/echarts-tutorial.html">Echarts 教程</a></li><li><a title="Chart.js 教程" href="https://www.runoob.com/chartjs/chartjs-tutorial.html">Chart.js 教程</a></li><li><a title="Highcharts 教程" href="https://www.runoob.com/highcharts/highcharts-tutorial.html">Highcharts 教程</a></li><li><a title="Google 地图 教程" href="https://www.runoob.com/googleapi/google-maps-basic.html">Google 地图 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 服务端</a><ul class="double-li"><li><a title="Python 教程" href="https://www.runoob.com/python3/python3-tutorial.html">Python 教程</a></li><li><a title="Python2.x 教程" href="https://www.runoob.com/python/python-tutorial.html">Python2.x 教程</a></li><li><a title="Linux 教程" href="https://www.runoob.com/linux/linux-tutorial.html">Linux 教程</a></li><li><a title="Docker 教程" href="https://www.runoob.com/docker/docker-tutorial.html">Docker 教程</a></li><li><a title="Ruby 教程" href="https://www.runoob.com/ruby/ruby-tutorial.html">Ruby 教程</a></li><li><a title="Java 教程" href="https://www.runoob.com/java/java-tutorial.html">Java 教程</a></li><li><a title="C 教程" href="https://www.runoob.com/c/c-tutorial.html">C 教程</a></li><li><a title="C++ 教程" href="https://www.runoob.com/cplusplus/cpp-tutorial.html">C++ 教程</a></li><li><a title="Perl 教程" href="https://www.runoob.com/perl/perl-tutorial.html">Perl 教程</a></li><li><a title="Servlet 教程" href="https://www.runoob.com/servlet/servlet-tutorial.html">Servlet 教程</a></li><li><a title="JSP 教程" href="https://www.runoob.com/jsp/jsp-tutorial.html">JSP 教程</a></li><li><a title="Lua 教程" href="https://www.runoob.com/lua/lua-tutorial.html">Lua 教程</a></li><li><a title="Rust 教程" href="https://www.runoob.com/rust/rust-tutorial.html">Rust 教程</a></li><li><a title="Scala 教程" href="https://www.runoob.com/scala/scala-tutorial.html">Scala 教程</a></li><li><a title="Go 教程" href="https://www.runoob.com/go/go-tutorial.html">Go 教程</a></li><li><a title="PHP 教程" href="https://www.runoob.com/php/php-tutorial.html">PHP 教程</a></li><li><a title="数据结构与算法" href="https://www.runoob.com/data-structures/data-structures-tutorial.html">数据结构与算法</a></li><li><a title="Django 教程" href="https://www.runoob.com/django/django-tutorial.html">Django 教程</a></li><li><a title="Zookeeper 教程" href="https://www.runoob.com/w3cnote/zookeeper-tutorial.html">Zookeeper 教程</a></li><li><a title="设计模式" href="https://www.runoob.com/design-pattern/design-pattern-tutorial.html">设计模式</a></li><li><a title="正则表达式" href="https://www.runoob.com/regexp/regexp-tutorial.html">正则表达式</a></li><li><a title="Maven 教程" href="https://www.runoob.com/maven/maven-tutorial.html">Maven 教程</a></li><li><a title="Verilog 教程" href="https://www.runoob.com/w3cnote/verilog-tutorial.html">Verilog 教程</a></li><li><a title="ASP 教程" href="https://www.runoob.com/asp/asp-tutorial.html">ASP 教程</a></li><li><a title="AppML 教程" href="https://www.runoob.com/appml/appml-tutorial.html">AppML 教程</a></li><li><a title="VBScript 教程" href="https://www.runoob.com/vbscript/vbscript-tutorial.html">VBScript 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 数据库</a><ul class="double-li"><li><a title="SQL 教程" href="https://www.runoob.com/sql/sql-tutorial.html">SQL 教程</a></li><li><a title="MySQL 教程" href="https://www.runoob.com/mysql/mysql-tutorial.html">MySQL 教程</a></li><li><a title="PostgreSQL 教程" href="https://www.runoob.com/postgresql/postgresql-tutorial.html">PostgreSQL 教程</a></li><li><a title="SQLite 教程" href="https://www.runoob.com/sqlite/sqlite-tutorial.html">SQLite 教程</a></li><li><a title="MongoDB 教程" href="https://www.runoob.com/mongodb/mongodb-tutorial.html">MongoDB 教程</a></li><li><a title="Redis 教程" href="https://www.runoob.com/redis/redis-tutorial.html">Redis 教程</a></li><li><a title="Memcached 教程" href="https://www.runoob.com/Memcached/Memcached-tutorial.html">Memcached 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 数据分析</a><ul class="double-li"><li><a title="Python 教程" href="https://www.runoob.com/python3/python3-tutorial.html">Python 教程</a></li><li><a title="NumPy 教程" href="https://www.runoob.com/numpy/numpy-tutorial.html">NumPy 教程</a></li><li><a title="Pandas 教程" href="https://www.runoob.com/pandas/pandas-tutorial.html">Pandas 教程</a></li><li><a title="Matplotlib 教程" href="https://www.runoob.com/matplotlib/matplotlib-tutorial.html">Matplotlib 教程</a></li><li><a title="Scipy 教程" href="https://www.runoob.com/scipy/scipy-tutorial.html">Scipy 教程</a></li><li><a title="R 教程" href="https://www.runoob.com/r/r-tutorial.html">R 教程</a></li><li><a title="Julia 教程" href="https://www.runoob.com/julia/julia-tutorial.html">Julia 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 移动端</a><ul class="double-li"><li><a title="Android 教程" href="https://www.runoob.com/w3cnote/android-tutorial-intro.html">Android 教程</a></li><li><a title="Swift 教程" href="https://www.runoob.com/swift/swift-tutorial.html">Swift 教程</a></li><li><a title="jQuery Mobile 教程" href="https://www.runoob.com/jquerymobile/jquerymobile-tutorial.html">jQuery Mobile 教程</a></li><li><a title="ionic 教程" href="https://www.runoob.com/ionic/ionic-tutorial.html">ionic 教程</a></li><li><a title="Kotlin 教程" href="https://www.runoob.com/kotlin/kotlin-tutorial.html">Kotlin 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> XML 教程</a><ul class="double-li"><li><a title="XML 教程" href="https://www.runoob.com/xml/xml-tutorial.html">XML 教程</a></li><li><a title="DTD 教程" href="https://www.runoob.com/dtd/dtd-tutorial.html">DTD 教程</a></li><li><a title="XML DOM 教程" href="https://www.runoob.com/dom/dom-tutorial.html">XML DOM 教程</a></li><li><a title="XSLT 教程" href="https://www.runoob.com/xsl/xsl-tutorial.html">XSLT 教程</a></li><li><a title="XPath 教程" href="https://www.runoob.com/xpath/xpath-tutorial.html">XPath 教程</a></li><li><a title="XQuery 教程" href="https://www.runoob.com/xquery/xquery-tutorial.html">XQuery 教程</a></li><li><a title="XLink 教程" href="https://www.runoob.com/xlink/xlink-tutorial.html">XLink 教程</a></li><li><a title="XPointer 教程" href="https://www.runoob.com/xlink/xlink-tutorial.html">XPointer 教程</a></li><li><a title="XML Schema 教程" href="https://www.runoob.com/schema/schema-tutorial.html">XML Schema 教程</a></li><li><a title="XSL-FO 教程" href="https://www.runoob.com/xslfo/xslfo-tutorial.html">XSL-FO 教程</a></li><li><a title="SVG 教程" href="https://www.runoob.com/svg/svg-tutorial.html">SVG 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> ASP.NET</a><ul class="double-li"><li><a title="ASP.NET 教程" href="https://www.runoob.com/aspnet/aspnet-tutorial.html">ASP.NET 教程</a></li><li><a title="C# 教程" href="https://www.runoob.com/csharp/csharp-tutorial.html">C# 教程</a></li><li><a title="Web Pages 教程" href="https://www.runoob.com/aspnet/webpages-intro.html">Web Pages 教程</a></li><li><a title="Razor 教程" href="https://www.runoob.com/aspnet/razor-intro.html">Razor 教程</a></li><li><a title="MVC 教程" href="https://www.runoob.com/aspnet/mvc-intro.html">MVC 教程</a></li><li><a title="Web Forms 教程" href="https://www.runoob.com/aspnet/aspnet-intro.html">Web Forms 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> Web Service</a><ul class="double-li"><li><a title="Web Service 教程" href="https://www.runoob.com/webservices/webservices-tutorial.html">Web Service 教程</a></li><li><a title="WSDL 教程" href="https://www.runoob.com/wsdl/wsdl-tutorial.html">WSDL 教程</a></li><li><a title="SOAP 教程" href="https://www.runoob.com/soap/soap-tutorial.html">SOAP 教程</a></li><li><a title="RSS 教程" href="https://www.runoob.com/rss/rss-tutorial.html">RSS 教程</a></li><li><a title="RDF 教程" href="https://www.runoob.com/rdf/rdf-tutorial.html">RDF 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 开发工具</a><ul class="double-li"><li><a title="Eclipse 教程" href="https://www.runoob.com/eclipse/eclipse-tutorial.html">Eclipse 教程</a></li><li><a title="Git 教程" href="https://www.runoob.com/git/git-tutorial.html">Git 教程</a></li><li><a title="Svn 教程" href="https://www.runoob.com/svn/svn-tutorial.html">Svn 教程</a></li><li><a title="Markdown 教程" href="https://www.runoob.com/markdown/md-tutorial.html">Markdown 教程</a></li></ul></li><li style="margin: 0;"><a href="javascript:void(0);" class="tit"> 网站建设</a><ul class="double-li"><li><a title="HTTP 教程" href="https://www.runoob.com/http/http-tutorial.html">HTTP 教程</a></li><li><a title="网站建设指南" href="https://www.runoob.com/web/web-buildingprimer.html">网站建设指南</a></li><li><a title="浏览器信息" href="https://www.runoob.com/browsers/browser-information.html">浏览器信息</a></li><li><a title="网站主机教程" href="https://www.runoob.com/hosting/hosting-tutorial.html">网站主机教程</a></li><li><a title="TCP/IP 教程" href="https://www.runoob.com/tcpip/tcpip-tutorial.html">TCP/IP 教程</a></li><li><a title="W3C 教程" href="https://www.runoob.com/w3c/w3c-tutorial.html">W3C 教程</a></li><li><a title="网站品质" href="https://www.runoob.com/quality/quality-tutorial.html">网站品质</a></li></ul></li></ul>            </div>
+    
+    </div>
+    </div>
+    <br>
+    
+    <div class="sidebar-box re-box re-box-large">
+        <div class="sidebar-box recommend-here">
+            <a href="javascript:void(0);">Advertisement</a>
+        </div>
+        <div class="re-600160" id="sidebar-right-re">
+                <script async="" src="./git reset 命令 _ 菜鸟教程_files/f(10).txt"></script>
+        <!-- 侧栏1 -->
+        <ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px" data-ad-client="ca-pub-5751451760833794" data-ad-slot="4106274865" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_1_host" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none; height: 600px; width: 160px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;"><iframe id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;border:0;width:160px;height:600px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="160" height="600" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./git reset 命令 _ 菜鸟教程_files/ads(1).html" data-google-container-id="a!2" data-google-query-id="CNr7mqKewfsCFWtHwgUd2M4BIw" data-load-complete="true"></iframe></div></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+                </div>
+    </div>
+</div></div>
+
+</div>
+
+<script>
+var aid = 22705;
+function coll() {
+	$.post( '/wp-content/themes/runoob/option/user/userinfo.php', {aid:aid, action:"collarticle", opt:'add'},function( data ) {
+		if(data.error==0) {
+			$("#content").find("h1:first").find("a").attr("href","javascript:void(0);");
+			$("#content").find("h1:first").find("img").attr("src","http://www.runoob.com/wp-content/themes/runoob/assets/img/coll2.png").css({width:32+"px",height:32+"px"});
+		}
+		alert(data.msg);
+	},'json');
+}
+</script>
+
+
+<!-- 反馈对话框开始 -->
+<script src="./git reset 命令 _ 菜鸟教程_files/feedback.js"></script>
+<link rel="stylesheet" href="./git reset 命令 _ 菜鸟教程_files/feedback.css">
+<script type="text/javascript">
+$.feedback({
+    ajaxURL: '/feedback/runoob_feedback.php',
+	html2canvasURL: '/wp-content/themes/runoob/assets/feedback/stable/2.0/html2canvas.js',
+	onClose: function () {
+         window.location.reload();
+    }
+});
+</script><button class="feedback-btn feedback-btn-gray" style="display: inline-block;">反馈/建议</button>
+<!-- 反馈对话框结束 -->
+<button class="feedback-btn feedback-btn-gray" style="display: inline-block;">反馈/建议</button>
+<!-- 底部 -->
+<div id="footer" class="mar-t50">
+   <div class="runoob-block">
+    <div class="runoob cf">
+     <dl>
+      <dt>
+       在线实例
+      </dt>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/html/html-examples.html">HTML 实例</a>
+      </dd>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/css/css-examples.html">CSS 实例</a>
+      </dd>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/js/js-examples.html">JavaScript 实例</a>
+      </dd>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/ajx/ajax-examples.html">Ajax 实例</a>
+      </dd>
+       <dd>
+       ·<a target="_blank" href="https://www.runoob.com/jquery/jquery-examples.html">jQuery 实例</a>
+      </dd>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/xml/xml-examples.html">XML 实例</a>
+      </dd>
+      <dd>
+       ·<a target="_blank" href="https://www.runoob.com/java/java-examples.html">Java 实例</a>
+      </dd>
+     
+     </dl>
+     <dl>
+      <dt>
+      字符集&amp;工具
+      </dt>
+      <dd>
+       · <a target="_blank" href="https://www.runoob.com/charsets/html-charsets.html">HTML 字符集设置</a>
+      </dd>
+      <dd>
+       · <a target="_blank" href="https://www.runoob.com/tags/html-ascii.html">HTML ASCII 字符集</a>
+      </dd>
+     <dd>
+       · <a target="_blank" href="https://c.runoob.com/front-end/6939/">JS 混淆/加密</a>
+      </dd> 
+      <dd>
+       · <a target="_blank" href="https://c.runoob.com/front-end/6232/">PNG/JPEG 图片压缩</a>
+      </dd>
+      <dd>
+       · <a target="_blank" href="https://www.runoob.com/tags/html-colorpicker.html">HTML 拾色器</a>
+      </dd>
+      <dd>
+       · <a target="_blank" href="https://c.runoob.com/front-end/53">JSON 格式化工具</a>
+      </dd>
+      <dd>
+       · <a target="_blank" href="https://c.runoob.com/front-end/6680/">随机数生成器</a>
+      </dd>
+     </dl>
+     <dl>
+      <dt>
+       最新更新
+      </dt>
+                   <dd>
+       ·
+      <a href="http://www.runoob.com/cssref/css-backdrop-filte.html" title="CSS backdrop-filte">CSS backdrop-filte</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/w3cnote/download-js.html" title="使用 JS 的 download 库来下载资源">使用 JS 的 down...</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/jsref/prop-nav-product.html" title="Navigator product 属性">Navigator produ...</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/jsref/prop-nav-online.html" title="Navigator onLine 属性">Navigator onLin...</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/jsref/prop-nav-language.html" title="Navigator language 属性">Navigator langu...</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/jsref/prop-nav-geolocation.html" title="Navigator geolocation 属性">Navigator geolo...</a>
+      </dd>
+              <dd>
+       ·
+      <a href="http://www.runoob.com/python3/python3-os-replace.html" title="Python3 os.replace() 方法">Python3 os.repl...</a>
+      </dd>
+             </dl>
+     <dl>
+      <dt>
+       站点信息
+      </dt>
+      <dd>
+       ·
+       <a target="_blank" href="mailto:admin@runoob.com" rel="external nofollow">意见反馈</a>
+       </dd>
+      <dd>
+       ·
+      <a target="_blank" href="https://www.runoob.com/disclaimer">免责声明</a>
+       </dd>
+      <dd>
+       ·
+       <a target="_blank" href="https://www.runoob.com/aboutus">关于我们</a>
+       </dd>
+      <dd>
+       ·
+      <a target="_blank" href="https://www.runoob.com/archives">文章归档</a>
+      </dd>
+    
+     </dl>
+    
+     <div class="search-share">
+      <div class="app-download">
+        <div>
+         <strong>关注微信</strong>
+        </div>
+      </div>
+      <div class="share">
+      <img width="128" height="128" src="./git reset 命令 _ 菜鸟教程_files/qrcode.png">
+       </div>
+     </div>
+     
+    </div>
+   </div>
+   <div class="w-1000 copyright">
+     Copyright © 2013-2022    <strong><a href="https://www.runoob.com/" target="_blank">菜鸟教程</a></strong>&nbsp;
+    <strong><a href="https://www.runoob.com/" target="_blank">runoob.com</a></strong> All Rights Reserved. 备案号：<a target="_blank" rel="nofollow" href="https://beian.miit.gov.cn/">闽ICP备15012807号-1</a>
+   </div>
+  </div>
+  <div class="fixed-btn">
+    <a class="go-top" href="javascript:void(0)" title="返回顶部" style="display: inline-block;"> <i class="fa fa-angle-up"></i></a>
+    <a class="qrcode" href="javascript:void(0)" title="关注我们"><i class="fa fa-qrcode"></i></a>
+    <a class="writer" style="" href="javascript:void(0)" title="标记/收藏"><i class="fa fa-star" aria-hidden="true"></i></a>
+    <!-- qrcode modal -->
+    <div id="bottom-qrcode" class="modal panel-modal hide fade in">
+      <h4>微信关注</h4>
+      <div class="panel-body"><img alt="微信关注" width="128" height="128" src="./git reset 命令 _ 菜鸟教程_files/qrcode.png"></div> 
+    </div>
+  </div>
+
+ <div style="display:none;">
+<script async="" src="./git reset 命令 _ 菜鸟教程_files/js"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-84264393-2');
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?3eec0b7da6548cf07db3bc477ea905ee";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+</div>
+<script>
+window.jsui={
+    www: 'https://www.runoob.com',
+    uri: 'https://www.runoob.com/wp-content/themes/runoob'
+};
+</script>
+
+
+<script src="./git reset 命令 _ 菜鸟教程_files/main.min.js"></script>
+
+
+<ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;" data-ad-status="unfilled"><div id="aswift_2_host" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;"><iframe id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./git reset 命令 _ 菜鸟教程_files/ads(2).html" data-google-container-id="a!3" data-load-complete="true"></iframe></div></ins><iframe src="./git reset 命令 _ 菜鸟教程_files/aframe.html" width="0" height="0" style="display: none;"></iframe></body><iframe id="google_esf" name="google_esf" src="./git reset 命令 _ 菜鸟教程_files/zrt_lookup.html" style="display: none;"></iframe></html>

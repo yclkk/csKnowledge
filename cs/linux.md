@@ -1602,13 +1602,17 @@ scp ~/.vimrc ~/.tmux.conf myser
 
 10. `git reflog`“：查看HEAD指针的移动历史（包括被回滚的版本）
 
-11. `git reset --hard HEAD^` 或`git reset --hard HEAD~`：将代码库回滚到上一个版本
+11. **--hard** 参数撤销工作区中所有未提交的修改内容，将暂存区与工作区都回到上一次版本，并删除之前的所有信息提交。谨慎使用 **–-hard** 参数，它会删除回退点之前的所有信息。
+
+    `git reset --hard HEAD^` 或`git reset --hard HEAD~`：将代码库回滚到上一个版本
 
     `git reset --hard HEAD^^`：往上回滚两次，以此类推
 
     `git reset --hard HEAD^^100`：往上回滚100个版本
 
     `git reset --hard 版本号`：回滚到某一特定版
+
+    [git reset，包括--soft, --hard, --mixed的用法](../src/linux/git%20reset%20命令%20_%20菜鸟教程.html)
 
 12. `git checkout -  XX`或 `git restore XX`：将文件尚未加入暂存区的修改全部撤销
 
@@ -1626,23 +1630,25 @@ scp ~/.vimrc ~/.tmux.conf myser
 
 18. `git checkout branch_name`：切换到`branch_name`这个分支
 
-19. `git merge branch_name`：将分支`branch_name`合并到当前分支上
+    1. `git merge branch_name`：将分支`branch_name`合并到当前分支上
 
-20. `git branch -d branch_name`:删除本地仓库的`branch_name`分支
+19. `git branch -d branch_name`:删除本地仓库的`branch_name`分支
 
-21. `git branch branch_name`:创建新分支
+20. `git branch branch_name`:创建新分支
 
-22. `git push --set-upstream origin branch_name`：设置本地的`branch_name`分支对应远程仓库的`branch_name`分支
+21. `git push --set-upstream origin branch_name`：设置本地的`branch_name`分支对应远程仓库的`branch_name`分支
 
-23. `git push -d origin branch_name`：删除远程仓库的`branch_name`分支
+22. `git push -d origin branch_name`：删除远程仓库的`branch_name`分支
 
-24. `git pull`：将远程仓库的当前分支和本地仓库的当前分支合并
+23. `git pull`：将远程仓库的当前分支和本地仓库的当前分支合并
 
     `git pull origin branch_name`：将远程仓库的`branch_name`分支与本地仓库的当前分支合并
 
-25. `git branch --set-upstream-to=origin/branch_name1 branch_name2`：将远程的`branch_nam1`分支和`branch_name2`分支合并
+24. `git branch --set-upstream-to=origin/branch_name1 branch_name2`：将远程的`branch_nam1`分支和`branch_name2`分支合并，`--set-upstream-to=等价于-u` `git branch -u origin/branch_name`：将远程`branch_name`和当前分支合并
 
-26. `git checkout -t origin/branch_name`：将远程的`branch_name`分支拉去到本地
+25. `git checkout -t origin/branch_name`：将远程的`branch_name`分支拉去到本地
+
+26. `git checkout origin/dev file`：将远程的`dev`的`file`覆盖当前本地本质的`file`
 
 27. `git stash`：将工作区和暂缓区中尚未提交的修改存入栈中
 
@@ -1848,7 +1854,7 @@ echo $PATH
 #### 安装软件
 
 1. `sudo command`：以`root`的身份执行`command`命令
-2. `apt-get install xxx`：安装软键
+2. `apt-get install xxx`：安装软件
 3. `pip install xxx --user --upgrade`：安装`python`包
 
 ----

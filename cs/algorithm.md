@@ -2608,6 +2608,8 @@ $n_2 = 2$ 有一个邻点 $n_2 = 1$
 
 ### 数论
 
+> 做数论题一定要算时间复杂度
+
 #### 质数
 
 定义
@@ -2618,7 +2620,213 @@ $n_2 = 2$ 有一个邻点 $n_2 = 1$
 
 ---
 
-##### 试除法
+##### 质数的判定——试除法
+
+**暴力做法**
+
+```c++
+bool is_prime(int n) {
+    if (n < 2) return;
+    
+    for (int i = 2; i < n; i++) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+**优化**：$O(\sqrt{n})$
+
+1. $d|n$,$\frac{n}{d}|n$，其中|表示整除，也就是如果$d|n$成立那么$\frac{n}{d}|n$也成立
+2. 比如n = 12，d = 3，n\d = 4，因此枚举的时候可以只枚举较小的那一个
+3. $d\leq\frac{n}{d}$ => $d^2 \leq n$  => $d \leq \sqrt{n}$
+
+```c++
+bool is_prime(int n) {
+    if (n < 2) return;
+    /*
+     不推荐写：
+     1. i * i <= n,因为如果i~2147483647的话，有可能会产生溢出的问题。~表示接近，后者表示int的最大值
+     2. i <= sqrt(n),这是由于sqrt操作每次都需要执行，同时sqrt又是比较慢的操作
+    */
+    for (int i = 2; i <= n / i; i++) {
+        if (n % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+---
+
+##### 分解质因数——试除法
+
+> 质因子：一个数能被分解成多个质数相乘，$n = p_1^{k_1} * p_2^{k_2}*p_3^{k_3}...$
+
+**思路**
+
+枚举从$2$~$n$的所有数
+
+1. 当枚举到$i$的时候，就意味着从$2$ ~ $i-1$的所有质因子都被除干净了 
+2. 如果$n\%i==0$ 也就是 $n$ 是 $i$ 的倍数并且 $n$ 当中不包含从 $2$ ~ $i-1$ 质因子，因此 $i$ 一定是一个质数
+
+```c++
+void divide(int n) {
+  for (int i = 2; i <= n; i++) {
+    if (n % i == 0) {
+      int s = 0;
+      while (n % i == 0) {
+        n /= i;
+        s ++;
+      }
+      printf("%d %d", i, s);
+    }
+  }
+}
+```
+
+---
+
+**优化**：时间复杂度 $O(\sqrt{n})$ ，但是是最坏 $\sqrt{n}$ ；当 $n = 2^k$ 时，最好是 $\log_2n$
+
+1. $n$ 中最多只包含一个 $\sqrt{n}$ 的的质因数，如果有两个的话，相乘就大于 $n$ 了，
+2. 如果最后 $n>1$，那么剩下的就是那个大于 $\sqrt{n}$ 的数 
+
+```c++
+void divide(int n) {
+    for (int i = 2; i <= n / i; i++) {
+        if (n % i == 0) {
+            int s = 0;
+            while (n % i == 0) {
+                n /= i;
+                s ++;
+            }
+            printf("%d %d\n", i, s);
+        }
+    }
+    if (n > 1) printf("%d %d\n", n, 1);
+    puts("");
+}
+```
+
+---
+
+##### 筛质数
+
+**思路**
+
+![mathLesson_isPrime](../src/algorithm/mathLesson_isPrime.png)
+
+1. 枚举 $2$ ~ $n$ ，每次删掉 $i$ 的倍数
+2. 假设 $p$ 没有被删除，也就意味着从 $2$ ~ $p-1$ 没有 $p$ 的约数，所以 $p$ 是质数
+
+---
+
+**朴素做法**
+
+时间复杂度：记成 $O(\log_2n)$
+$$
+\frac{n}{2} + \frac{n}{3} + \frac{n}{4} + \frac{n}{5} + \cdots + \frac{n}{n}
+\\ =>
+n(\frac{1}{2} + \frac{1}{3} + \frac{1}{4} + \frac{1}{5} + \cdots + \frac{1}{n})
+\\ 其中
+\frac{1}{2} + \frac{1}{3} + \frac{1}{4} + \frac{1}{5} + \cdots + \frac{1}{n}是调和级数
+\\=\ln n + c,其中c = 0.577\cdots为欧拉常数，无限不循环小数
+\\ 所以原式\approx n\ln n < n \log_2n
+$$
+
+```c++
+void get_primes(int n) {
+    for (int i = 2; i <= n; i++) {
+        if (!st[i]) {
+            primes[cnt ++] = i;
+        }
+        for (int j = i + i; j <= n; j += i) st[j] = true;
+    }
+}
+```
+
+---
+
+**优化**
+
+1. **埃氏筛法**
+
+只需要筛掉质数的倍数
+
+```c++
+void get_primes(int n) {
+    for (int i = 2; i <= n; i++) {
+        if (!st[i]) {
+            primes[cnt ++] = i;
+          	for (int j = i + i; j <= n; j += i) st[j] = true;
+        }
+    }
+}
+```
+
+时间复杂度：
+
+质数定理： $1$ ~ $n$ 中有 $\frac{n}{\ln n}$ 个质数，所以原本要算 $n$ 次，现在只要算$\frac{n}{\ln n}$ 次
+
+因此原式$=\frac{n\ln n}{\ln n} = n$ ，但是实际上时间复杂度为：$O(n\log n\log n)$，这两者基本上是一个级别的，假如 $n = 2^{32}, \log_2n = 32, \log_2n = 5$，也就是$ n \times 5$
+
+---
+
+2. **线性筛法**
+
+```c++
+void get_primes(int n) {
+    for (int i = 2; i <= n ; i++) {
+        if (!st[i]) primes[cnt ++] = i;
+        for (int j = 0; primes[j] <= n / i; j++) {
+            st[primes[j] * i] = true;
+            if (i % primes[j] == 0) break;
+        }
+    }
+}
+```
+
+----
+
+#### 约数
+
+##### 试除法求所有的约数
+
+与求质数是一样的，$d|n$,$\frac{n}{d}|n$  成对出现
+
+时间复杂度：$O(\sqrt{N})$
+
+```c++
+vector<int> get_divisors(int n) {
+    vector<int> res;
+    for (int i = 1; i <= n / i; i++) {
+        if (n % i == 0) {
+            res.push_back(i);
+            if (i != n / i) res.push_back(n / i);
+        }
+    }
+    sort(res.begin(), res.end());
+    return res;
+}
+```
+
+---
+
+##### 约数个数
+
+$N = P_1^{\alpha_1}\cdot P_2^{\alpha_2}\cdot P_3^{\alpha_3}\cdot P_4^{\alpha_4}$
+
+约数个数为：$(\alpha_1 + 1)(\alpha_2 + 1)(\alpha_3 + 1)(\alpha_4 + 1)$
+
+其中每个约数$d = P_1^{\beta_1}\cdot P_2^{\beta_2}\cdot P_3^{\beta_3}\cdot P_4^{\beta_4}$，其中$0\leq \beta_i \leq \alpha_i$
+
+##### 约数之和
+
+$s = (P_1^0+P_1^1+P_1^2+P_1^{\alpha_1})\cdot\cdot\cdot(P_k^0+P_k^1+P_k^2+P_k^{\alpha_k})$
 
 ---
 
@@ -2634,7 +2842,37 @@ $n_2 = 2$ 有一个邻点 $n_2 = 1$
 
 ---
 
+## 动态规划
 
+> dp优化都是对dp代码或者dp方程做一个等价变形，因此一开始需要把基本形式写出来
+
+### 背包问题
+
+#### 01背包问题
+
+> 每个物品只能使用一次
+
+---
+
+#### 完全背包问题
+
+> 每个物品能用无限次
+
+---
+
+#### 多重背包问题
+
+> 每个物品最多只有$s_i$个
+
+##### 朴素版
+
+##### 优化版
+
+---
+
+#### 分组背包问题
+
+> 有$N$组，每组里面有若干个物品，每一组最多只能选一个
 
 ----
 

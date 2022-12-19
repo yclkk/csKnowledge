@@ -1060,25 +1060,45 @@ SELECT
   - 第三范式基本解决了数据冗余过大，插入异常，修改异常，删除异常的问题
   - 在实际中，往往为了性能上或者应对的扩展的需要，经常用上2NF和1NF。
 
+---
 
+### 数据库的水平和垂直拆分
 
+1. **垂直拆分**
 
+根据业务和功能的不同将字段拆分到多个表中。其中对于`text`的字段，需要单独拆分出来放在一张表中，对一`int, varchar`这类比较的小但是搜索次数比较频繁的字段可以放在同一个表中
 
+2. **水平拆分**
 
+将同类型的数据分别存放于**相同结构**的多个表中。一个好的分表键通常数据库 中非常重要的核心，如实体的主键。拆分方法如下：
 
+如果需要拆分为 $5$ 个表，那就$\%5=0,1,2,3,4$、如果是 $10$ 个表，那就 $\%10=0,1,2,3,4,5,6,7,8,9$ 。当拆分为多个表的时候，还可以将这些表放在不同的库里面，不同的库又能部署到不同的服务器上，对于写操作的承载提高
 
+---
 
-这是一行字
+**步骤**
 
-这是第二行字
+1. 导出数据
 
-这是全选，是无法删除一行的
+   `db2 "export to muipentity.del of del modified by nochardel coldel0x0f timestampformat=\"yyyy-mm-dd hh:mm:ss\" select * from itc_muip_task_entity"`
 
-如何快速删除一行字
+   上面导出导致后续导入有问题就用这个：`db2 'export to /path/文件名.del of del select * from SCHEMA.tableName'`
 
-如何快速删除一个词
+2. 获取表的`ddl`语句，写成一个脚本`test.sql`
 
+   ```sql
+   connect to appdb;
+   drop table schema.tableName;
+   ddl sql;
+   coonnect reset;
+   ```
 
+   执行：`db2 -tvf test.sql`
+
+3. 导入数据
+
+   `db2 'load from /home/data/cust_pool.del of del insert into ecrm.cust_pool_bak nonrecoverable'`
+   `db2 'import from /home/data/cust_ pool.del of del insert into ecrm.cust_ pool_bak '`
 
 
 

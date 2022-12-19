@@ -1,4 +1,4 @@
-## 第一章 文件
+##  第一章 文件
 
 ### 1.1 常用文件夹名称
 
@@ -759,7 +759,7 @@ test $a -eq $b # a是否等于b
 
 - 多重条件判定
 
-```
+```sh
 test -r filename -a -x filename # 判断filename是否可读并且可写
 ```
 

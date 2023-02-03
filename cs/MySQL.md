@@ -1100,6 +1100,45 @@ SELECT
    `db2 'load from /home/data/cust_pool.del of del insert into ecrm.cust_pool_bak nonrecoverable'`
    `db2 'import from /home/data/cust_ pool.del of del insert into ecrm.cust_ pool_bak '`
 
+生成数据的脚本
+
+```sh
+#! /bin/ksh
+# coding:UTF-8 #设置编码格式为UTF-8，中文就可以正常识别
+set -o errexit #中间环节出错退出后面的执行，set +o errexit：关闭
+db2 connect to appdb
+count=100000
+i=0
+while [i -le count]
+do
+	db2 "insert into ....
+	values($i,....)"
+	i=$i+1
+done
+db2 connect reset
+
+```
+
+生成数据的py
+
+[py脚本生成批量数据](../src/sql/python脚本批量生成数据 - 肥猫与猪宝宝 - 博客园.html)
+
+**范围删除数据**
+
+```sql
+delete from 表A where id in (
+select top 90 id from (
+select top 100 id from 表A order by id asc) order by id desc);
+
+思路就是 先按照ID 升序查出前100条
+然后按照ID降序，查出前90条
+最后把这90条记录删除掉
+```
+
+
+
+在notepad中，使用\r\n可以替换换行，可以用shift+alt来多选
+
 
 
  

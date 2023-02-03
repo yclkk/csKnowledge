@@ -109,7 +109,7 @@ public class Main {
   
   class Son3<T1, T2, A, B> extends Father<T1, T2>{}   // 全部保留
   
-  class Son4<T2, A, B> extends Father<Integer, T2>{} // 部分保留
+  class Son4<T2, A, B>	 extends Father<Integer, T2>{} // 部分保留
   ```
 
 
@@ -525,6 +525,45 @@ public class Main {
 
    1. wait：线程阻塞
    2. notify唤醒其他被阻塞的线程
+
+### Lambda
+
+#### 双冒号::
+
+[深入理解Java双冒号(::)运算符的使用](https://blog.csdn.net/zhoufanyang_china/article/details/87798829)
+
+#### Optional
+
+`optional.orElse()`与`optional.orElseGet()`
+
+源码
+
+```java
+public T orElse(T other) {
+  return value != null ? value : other;
+}
+
+public T orElseGet(Supplier<? extends T> other) {
+  return value != null ? value : other.get();
+}
+```
+
+调用
+
+```java
+// 无论是否为空都会调用createStuden(),然后将返回值传给T other，所以相当于饿汉式
+optionalStudent.orElse(createStudent());
+// 只有为null才会执行.get(),才会返回createStudent()方法，相当于懒汉式
+optionalStudent.orElseGet(new Supplier<Student>() {
+  @Override
+  public Student get() {
+    return createStudent();
+  }
+});
+//可改写lambda->optionalStudent.orElseGet(this::createStudent);
+```
+
+
 
 ----
 

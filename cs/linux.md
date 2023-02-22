@@ -1689,6 +1689,12 @@ scp ~/.vimrc ~/.tmux.conf myser
 find . -name '*.py' | xargs cat | wc -l
 ```
 
+查找路径下.zip文件里包含needfind
+
+```bash
+find path -name '*.zip' -exac zgrep -l 'needfind' {} \
+```
+
 ----
 
 ### 5.2  环境变量

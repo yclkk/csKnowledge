@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)https://www.yiibai.com/sql/sql-fetch.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+	<title>
+		SQL Fetch语句 -
+		SQL教程</title>
+	<meta name="keywords" content="">
+	<meta name="description" content="在本教程中，我们来学习如何使用SQL FETCH子句来限制查询返回的行数。1. SQL FETCH子句简介要限制查询返回的行数，请使用LIMIT子句。 LIMIT子句得到了许多数据库系统的广泛支持，例如MySQL，H2和HSQLDB。 但是，LIMIT子句不是SQL标准子句。SQL：2008 引入了OFFSET FETCH子句，它具有与LIMIT子句类似的功能。 OFFSET FETCH子句用于在开始返回任何行之前跳过结果集中的前N行。以下显示了SQLFETCH子句的语...">
+	<link rel="stylesheet" href="./SQL Fetch语句 - SQL教程_files/font-awesome.min.css" media="all">
+	<link rel="stylesheet" href="./SQL Fetch语句 - SQL教程_files/layui.css">
+	<link rel="stylesheet" href="./SQL Fetch语句 - SQL教程_files/all.css" media="all">
+	<link rel="stylesheet" href="./SQL Fetch语句 - SQL教程_files/prism.css" media="all">
+	
+	<!--[if lt IE 9]>
+		<script src="http://apps.bdimg.com/libs/html5shiv/3.7/html5shiv.min.js"></script>
+		<![endif]-->
+	<style>
+		.list-group ul{list-style-type: none;}
+		/*生成浮动目录导航的CSS*/
+		#sideBar{
+			font-size:12px;
+			font-family:Arial, Helvetica, sans-serif;
+			text-align:left;
+			position:fixed;
+			top:100px;
+			right:0px;
+			width: auto;
+			height: auto;
+		}
+		#sideBarTab h2{
+			font-weight: 300;
+			font-size: 24px;
+		}
+		#sideBarTab{
+			float:left;
+			width:35px;
+			border:1px solid #e5e5e5;
+			border-right:none;
+			text-align:center;
+			background:#ffffff;
+			padding: 5px;
+		}
+
+		#sideBarContents{
+			float:left;
+			overflow:auto;
+			overflow-x:hidden;!important;
+			width:200px;
+			min-height:136px;
+			max-height:460px;
+			border:1px solid #e5e5e5;
+			border-right:none;
+			background:#ffffff; 
+			padding: 15px;
+		}
+		#sideBarContents dl{
+			margin:0;
+			padding:0;
+			width:200px;
+			height: 24px;
+			font-size: 16px;
+		}
+
+		#sideBarContents dt{
+			margin-top:5px;
+			/**margin-left:5px;**/
+		}
+
+		#sideBarContents dd, dt {
+			width:200px;
+			float:left;
+			line-height: 1.42857143;
+			cursor: pointer;	
+			color: #2196F3;
+			overflow-y: hidden;
+			height: 22px;
+			font-size: 14px;
+		}
+		#sideBarContents dd:hover, dt:hover {
+			color:#A7995A;
+			color: #004499;
+
+		}
+
+
+		#article-directory dt, dd {
+			cursor: pointer;	
+			color: #2196F3;
+		}
+
+		#article-directory dt:hover, dd:hover {
+			cursor: pointer;	
+			color: #004499;
+			text-decoration: underline;
+			background: #f5f2f0;
+		}
+
+		
+
+		#article-directory dd {
+			padding-left: 16px;		
+		}
+
+		
+	</style>
+<meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="Az6AfRvI8mo7yiW5fLfj04W21t0ig6aMsGYpIqMTaX60H+b0DkO1uDr+7BrzMcimWzv/X7SXR8jI+uvbV0IJlwYAAACFeyJvcmlnaW4iOiJodHRwczovL2RvdWJsZWNsaWNrLm5ldDo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A+USTya+tNvDPaxUgJooz+LaVk5hPoAxpLvSxjogX4Mk8awCTQ9iop6zJ9d5ldgU7WmHqBlnQB41LHHRFxoaBwoAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXN5bmRpY2F0aW9uLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><meta http-equiv="origin-trial" content="A7FovoGr67TUBYbnY+Z0IKoJbbmRmB8fCyirUGHavNDtD91CiGyHHSA2hDG9r9T3NjUKFi6egL3RbgTwhhcVDwUAAACLeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZXRhZ3NlcnZpY2VzLmNvbTo0NDMiLCJmZWF0dXJlIjoiUHJpdmFjeVNhbmRib3hBZHNBUElzIiwiZXhwaXJ5IjoxNjgwNjUyNzk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ=="><link rel="stylesheet" href="./SQL Fetch语句 - SQL教程_files/layer.css" id="layuicss-layer"><link rel="preload" href="./SQL Fetch语句 - SQL教程_files/f(8).txt" as="script"><script src="./SQL Fetch语句 - SQL教程_files/f(7).txt"></script><script type="text/javascript" src="./SQL Fetch语句 - SQL教程_files/f(8).txt"></script></head>
+<body class="page-home" aria-hidden="false" style="padding: 0px 0px 120px;">
+	<style>
+	.input-keyword{
+		border-radius: 0px;
+		float: left;
+		width: 134px;
+		padding-left: 6px;
+		height: 28px;
+		border-color: #d2d6de;
+		box-shadow: none;
+		background-color: #fff;
+		background-image: none;
+		border: 1px solid #ccc;
+	}
+	.submit-search{
+		float:left;font-size:14px;width:48px; height: 28px;
+		border-color: #d2d6de;
+		box-shadow: none;
+		background-color: #fff;
+		background-image: none;
+		border: 1px solid #ccc;
+	}
+</style>
+<header class="header">
+	<div class="container">
+		<h1 class="logo">
+			<a href="https://www.yiibai.com/" title="易百教程"><i class="fa"></i>
+				易百教程
+			</a>
+			<a id="backTop" name="backTop" style="display:none;"></a>
+		</h1>
+		<div class="site-navbar">
+			<ul>
+				<li class="has-sub-menu"><a href="https://www.yiibai.com/sql/sql-fetch.html#">所有教程</a>
+					<div class="sub-menu">
+						<ul>
+							<li><a href="https://www.yiibai.com/html/java/">Java技术</a></li>
+							<li><a href="https://www.yiibai.com/web/">Web技术</a></li>
+							<li><a href="https://www.yiibai.com/html/script/">脚本语言</a></li>
+							<li><a href="https://www.yiibai.com/html/database/">数据库</a></li>
+							<li><a href="https://www.yiibai.com/hightlang/">高级语言</a></li>
+							<li><a href="https://www.yiibai.com/html/misc/">其它技术</a></li>
+							<li><a href="https://www.yiibai.com/?app=all" style="font-weight:bold;color: #61B3E6;">查看所有教程</a></li>
+						</ul>
+					</div>
+				</li>
+				<li class="has-sub-menu"><a href="javascript:void(0);">Java技术</a>
+					<div class="sub-menu">
+						<ul>
+							<li>
+								<a href="https://www.yiibai.com/java/" target="_blank">Java教程</a>
+							</li>
+
+							<li>
+								<a href="https://www.yiibai.com/design_pattern/" target="_blank">Java设计模式</a>
+							</li>
+							<li>
+								<a href="https://www.yiibai.com/jsp/" target="_blank">JSP教程</a>
+							</li>
+
+							<li>
+								<a href="https://www.yiibai.com/jdbc/" target="_blank">JDBC教程</a>
+							</li>
+
+							<li>
+								<a href="https://www.yiibai.com/struts_2/" target="_blank">Struts2教程</a>
+							</li>
+
+							<li>
+								<a href="https://www.yiibai.com/maven/" target="_blank">Maven教程</a>
+							</li>
+
+
+							<li>
+								<a href="https://www.yiibai.com/javaexamples/" target="_blank">java实例教程</a>
+							</li>
+
+							<li>
+								<a href="https://www.yiibai.com/mybatis/" target="_blank">MyBatis教程</a>
+							</li>
+
+
+							<li>
+								<a href="https://www.yiibai.com/spring/" target="_blank">Spring教程</a>
+							</li>
+							<li>
+								<a href="https://www.yiibai.com/spring_mvc/" target="_blank">Spring MVC教程</a>
+							</li>
+
+
+						</ul>
+					</div>
+				</li>
+				<li class="has-sub-menu"><a href="javascript:;">数据库</a>
+					<div class="sub-menu">
+						<ul>
+							<li>
+								<a href="https://www.yiibai.com/mysql/" target="_blank" title="MySQL教程">MySQL教程</a>
+							</li>
+							<li>
+								<a href="https://www.yiibai.com/postgresql/" target="_blank" title="PostgreSQL教程">PostgreSQL教程</a>
+							</li>
+						</ul>
+					</div>
+				</li>
+				<li class=""><a href="https://www.yiibai.com/geek">极客</a></li>
+				<li class=""><a href="https://www.yiibai.com/code">代码</a></li>
+				<li class="active"><a href="https://www.yiibai.com/interview">面试题</a></li>
+			</ul>
+		</div>
+		<div style="padding-top:4px;padding-bottom:4px;width:220px;float:left;margin-left:64px;line-height:22px;" id="search-form">
+			<form action="https://www.yiibai.com/search" method="get">
+				<input type="text" id="kw" name="kw" class="input-keyword" value="">
+				<input type="submit" id="head-sumbit" class="submit-search" value="搜索">
+			</form>
+		</div>
+
+		<div id="login-state" style="float:left;margin-top: 4px;"><div class="wel-login">					
+					<a href="https://www.yiibai.com/login" class="btn btn-primary">登录</a>
+				</div></div>
+		<div class="m-navbar-start">
+			<i class="fa"></i>
+		</div>
+		<div class="m-wel-start">
+			<i class="fa"></i>
+		</div>
+		<div class="m-mask"></div>
+	</div>
+</header>
+<nav id="header-nav" style="float:left;width:100%;display:none;"></nav>
+	<section class="container container-page clearfix" style="margin-top: 24px;">
+		<div class="pageside">
+			<div class="pagemenus">
+				<ul class="pagemenu">
+					<li class="navto-ads active">
+							
+							<a href="https://www.yiibai.com/sql" style="float:left;line-height:32px;font-weight:bold;padding-bottom: 32px;padding-top: 12px;width: 100%;">
+
+							<i class="fa fa-list"></i>&nbsp;&nbsp;
+							SQL教程
+							</a>						
+					</li>
+					<!--// 默认左侧文章 -->
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-overview.html" title="SQL简介" style="">
+							SQL简介</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-rdbms-concepts.html" title="RDBMS概念" style="">
+							RDBMS概念</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-databases.html" title="SQL数据库" style="">
+							SQL数据库</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-syntax.html" title="SQL语法" style="">
+							SQL语法</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-data-types.html" title="SQL数据类型" style="">
+							SQL数据类型</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-operators.html" title="SQL运算符" style="">
+							SQL运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-sample-database.html" title="SQL示例数据库" style="">
+							SQL示例数据库</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-expressions.html" title="SQL表达式" style="">
+							SQL表达式</a>
+					</li>
+										
+
+					<!--// 有标签的文章 -->
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL数据库操作</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-create-database.html" title="SQL Create Database语句" style="">
+							SQL Create Database语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-drop-database.html" title="SQL Drop Database语句" style="">
+							SQL Drop Database语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-rename-database.html" title="SQL Rename Database语句" style="">
+							SQL Rename Database语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-select-database.html" title="USE语句（选择数据库）" style="">
+							USE语句（选择数据库）</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL表操作</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-table.html" title="表是什么？" style="">
+							表是什么？</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-create-table.html" title="SQL Create Table" style="">
+							SQL Create Table</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-alter-table.html" title="SQL Alter Table" style="">
+							SQL Alter Table</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-drop-table.html" title="SQL Drop Table" style="">
+							SQL Drop Table</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-truncate-table.html" title="SQL Truncate Table" style="">
+							SQL Truncate Table</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-rename-table.html" title="SQL Rename Table" style="">
+							SQL Rename Table</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-copy-table.html" title="SQL复制表" style="">
+							SQL复制表</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-temp-table.html" title="SQL临时表" style="">
+							SQL临时表</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-add-column.html" title="SQL Add Column" style="">
+							SQL Add Column</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-drop-column.html" title="SQL Drop Column" style="">
+							SQL Drop Column</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">数据操作语句</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-insert.html" title="SQL Insert语句" style="">
+							SQL Insert语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-insert-into-values.html" title="SQL Insert Into Value" style="">
+							SQL Insert Into Value</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-insert-into-select.html" title="SQL Insert Into Select" style="">
+							SQL Insert Into Select</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-insert-multiple-rows.html" title="SQL插入多行" style="">
+							SQL插入多行</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-update.html" title="SQL Update语句" style="">
+							SQL Update语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-update-with-join.html" title="SQL Update与Join" style="">
+							SQL Update与Join</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-update-date.html" title="SQL更新日期数据" style="">
+							SQL更新日期数据</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-delete.html" title="SQL Delete语句" style="">
+							SQL Delete语句</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL查询语句</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-select.html" title="SQL Select语句" style="">
+							SQL Select语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-order-by.html" title="SQL Order By排序" style="">
+							SQL Order By排序</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-distinct.html" title="SQL DISTINCT运算符" style="">
+							SQL DISTINCT运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-limit.html" title="SQL Limit子句" style="">
+							SQL Limit子句</a>
+					</li>
+																				<li style="border-left: 6px solid #2e82ff;font-weight: bold;">
+						<a href="https://www.yiibai.com/sql/sql-fetch.html#" title="当前阅读的文章" style="cursor:text;background-color: #f5f2f0;">
+							SQL Fetch语句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-where.html" title="SQL Where子句" style="">
+							SQL Where子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-and.html" title="SQL And运算符" style="">
+							SQL And运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-or.html" title="SQL Or运算符" style="">
+							SQL Or运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-between.html" title="SQL Between运算符" style="">
+							SQL Between运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-in.html" title="SQL In运算符" style="">
+							SQL In运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-like.html" title="SQL Like运算符" style="">
+							SQL Like运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-is-null.html" title="SQL Is Null运算符" style="">
+							SQL Is Null运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-not.html" title="SQL Not运算符" style="">
+							SQL Not运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-alias.html" title="SQL别名" style="">
+							SQL别名</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-inner-join.html" title="SQL Inner Join子句" style="">
+							SQL Inner Join子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-left-join.html" title="SQL Left Join子句" style="">
+							SQL Left Join子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-full-outer-join.html" title="SQL FULL OUTER JOIN子句" style="">
+							SQL FULL OUTER JOIN子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-cross-join.html" title="SQL Cross Join子句" style="">
+							SQL Cross Join子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-self-join.html" title="SQL自连接" style="">
+							SQL自连接</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL聚合函数</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-aggregate-functions.html" title="SQL聚合函数" style="">
+							SQL聚合函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-avg.html" title="SQL Avg()函数" style="">
+							SQL Avg()函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-count.html" title="SQL Count()函数" style="">
+							SQL Count()函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-max.html" title="SQL Max()函数" style="">
+							SQL Max()函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-min.html" title="SQL Min()函数" style="">
+							SQL Min()函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-sum.html" title="SQL Sum()函数" style="">
+							SQL Sum()函数</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-group-by.html" title="SQL Group By子句" style="">
+							SQL Group By子句</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-having.html" title="SQL Having子句" style="">
+							SQL Having子句</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL高级查询</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-grouping-sets.html" title="SQL Grouping Sets运算符" style="">
+							SQL Grouping Sets运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-rollup.html" title="SQL Rollup" style="">
+							SQL Rollup</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-union.html" title="SQL Union运算符" style="">
+							SQL Union运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-intersect.html" title="SQL Intersect运算符" style="">
+							SQL Intersect运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-minus.html" title="SQL Minus运算符" style="">
+							SQL Minus运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-subquery.html" title="SQL子查询" style="">
+							SQL子查询</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-correlated-subquery.html" title="SQL相关子查询" style="">
+							SQL相关子查询</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-exists.html" title="SQL Exists运算符" style="">
+							SQL Exists运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-all.html" title="SQL All运算符" style="">
+							SQL All运算符</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-any.html" title="SQL Any运算符" style="">
+							SQL Any运算符</a>
+					</li>
+										
+										<li style="font-size:16px;font-weight:bold;color:#666;"><a style="background-color: #f8f9f9;cursor:text;font-size:16px;color: #666;">SQL约束</a></li>
+															<li style="">
+						<a href="https://www.yiibai.com/sql/sql-primary-key.html" title="SQL主键约束" style="">
+							SQL主键约束</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-foreign-key.html" title="SQL外键" style="">
+							SQL外键</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-unique-constraint.html" title="SQL唯一约束" style="">
+							SQL唯一约束</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-not-null-constraint.html" title="SQL Not Null约束" style="">
+							SQL Not Null约束</a>
+					</li>
+																				<li style="">
+						<a href="https://www.yiibai.com/sql/sql-check-constraint.html" title="SQL检查约束" style="">
+							SQL检查约束</a>
+					</li>
+										
+					
+				</ul>
+
+			</div>
+		</div>
+
+		<div class="content" id="navs">
+
+			<header class="article-header">
+				<h1 class="article-title" style="text-align:center;">
+					SQL Fetch语句
+				</h1>
+				<div class="article-meta" style="margin-top:20px;font-size:14px;">
+
+					<span class="item" style="margin-left:20px;">以下内容仅是站长或网友个人学习笔记、总结和研究收藏。不保证正确性，因使用而带来的风险与本站无关！</span>
+					
+				</div>
+			</header>
+			<!--// article body -->
+			<article>
+				<a name="article-start" id="article-start"></a>
+
+				<div style="padding-top: 6px;padding-bottom: 4px;float:left;width:100%;">
+					<script src="./SQL Fetch语句 - SQL教程_files/f(9).txt"></script><script src="./SQL Fetch语句 - SQL教程_files/f(10).txt" id="google_shimpl"></script><script src="./SQL Fetch语句 - SQL教程_files/hm.js"></script><script async="" src="./SQL Fetch语句 - SQL教程_files/f(11).txt"></script>
+					<!-- 顶部_720x90 -->
+					<ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1090193214637198" data-ad-slot="9805510053" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_0_host" style="border: none; height: 90px; width: 728px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:728px;height:90px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads.html" data-google-container-id="a!1" data-google-query-id="CL_ok-G6qP0CFTlJDwIdH-sImw" data-load-complete="true"></iframe></div></ins>
+					<script>
+						( adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+				</div>
+
+				<div style="float:left;width:100%;heigh:30px;padding-bottom:10px;padding-top:3px;display:none;" id="adv_730x80"></div>
+
+				<div style="width:100%;float:left;" class="article-content" id="article-content">
+
+					<input type="hidden" name="article_id" id="article_id" value="27254">
+					<input type="hidden" name="catid" id="catid" value="0">
+
+					<p>在本教程中，我们来学习如何使用SQL <code>FETCH</code>子句来限制查询返回的行数。</p>
+<h4 id="blogTitle0"><a name="1. SQL FETCH子句简介" class="reference-link"></a><span class="header-link octicon octicon-link"></span>1. SQL FETCH子句简介</h4><p>要限制查询返回的行数，请使用<code>LIMIT</code>子句。 <code>LIMIT</code>子句得到了许多数据库系统的广泛支持，例如MySQL，H2和HSQLDB。 但是，<code>LIMIT</code>子句不是SQL标准子句。</p>
+<p><em>SQL：2008</em> 引入了<code>OFFSET FETCH</code>子句，它具有与<code>LIMIT</code>子句类似的功能。 <code>OFFSET FETCH</code>子句用于在开始返回任何行之前跳过结果集中的前<code>N</code>行。</p>
+<p>以下显示了SQL<code>FETCH</code>子句的语法：</p>
+<pre class="language-sql code-toolbar"><code class=" language-sql"><span class="token keyword">OFFSET</span> offset_rows { <span class="token keyword">ROW</span> <span class="token operator">|</span> <span class="token keyword">ROWS</span> }
+<span class="token keyword">FETCH</span> { <span class="token keyword">FIRST</span> <span class="token operator">|</span> <span class="token keyword">NEXT</span> } <span class="token punctuation">[</span> fetch_rows <span class="token punctuation">]</span> { <span class="token keyword">ROW</span> <span class="token operator">|</span> <span class="token keyword">ROWS</span> } ONLY
+</code><div class="toolbar"><div class="toolbar-item"><span>SQL</span></div></div></pre>
+<p>在上面语法中，</p>
+<ul>
+<li><code>ROW</code>和<code>ROWS</code>，<code>FIRST</code>和<code>NEXT</code>是同义词，因此，可以互换使用它们。</li><li><code>offset_rows</code>是一个整数，必须为零或正数。 如果<code>offset_rows</code>大于结果集中的行数，则不会返回任何行。</li><li><code>fetch_rows</code>也是一个整数，用于确定要返回的行数。 <code>fetch_rows</code>的值等于或大于<code>1</code>。</li></ul>
+<p>由于行以不可预测的顺序存储在表中，因此应始终将<code>FETCH</code>子句与<code>ORDER BY</code>子句一起使用以获得一致的输出。</p>
+<p>许多数据库系统都支持<code>OFFSET FETCH</code>子句，包括<em>Oracle Database 12c +</em>，<em>PostgreSQL 10+</em> 和<em>Microsoft SQL Server 2012+</em> 。 但是，每个数据库系统都会以不同的方式实现<code>OFFSET FETCH</code>子句。</p>
+<p><code>OFFSET FETCH</code>子句通常用于需要分页的客户端或Web应用程序。 例如，如果每个页面有十行，要获取第二页的行，可以跳过前<code>10</code>行并返回接下来的<code>10</code>行。</p>
+<h4 id="blogTitle1"><a name="2. SQL FETCH示例" class="reference-link"></a><span class="header-link octicon octicon-link"></span>2. SQL FETCH示例</h4><p>我们将使用<a href="http://www.yiibai.com/sql/sql-sample-database.html" title="示例数据库">示例数据库</a>中的<code>employees</code>表进行演示。</p>
+<p>以下语句返回薪水最高的员工信息：</p>
+<pre class="language-sql code-toolbar"><code class=" language-sql"><span class="token keyword">SELECT</span> 
+    employee_id<span class="token punctuation">,</span> 
+    first_name<span class="token punctuation">,</span> 
+    last_name<span class="token punctuation">,</span> 
+    salary
+<span class="token keyword">FROM</span> employees
+<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> 
+    salary <span class="token keyword">DESC</span>
+<span class="token keyword">OFFSET</span> <span class="token number">0</span> <span class="token keyword">ROWS</span>
+<span class="token keyword">FETCH</span> <span class="token keyword">NEXT</span> <span class="token number">1</span> <span class="token keyword">ROWS</span> ONLY<span class="token punctuation">;</span>
+</code><div class="toolbar"><div class="toolbar-item"><span>SQL</span></div></div></pre>
+<p>在此示例中，首先，<code>ORDER BY</code>子句按薪水从高到低对员工进行排序。 <code>OFFSET</code>子句跳过<code>0</code>行，<code>FETCH</code>子句返回第一行。</p>
+<p>以下语句按薪水对员工进行排序，跳过前五名薪水最高的员工，然后取出接下来的五名员工。</p>
+<pre class="language-sql code-toolbar"><code class=" language-sql"><span class="token keyword">SELECT</span> 
+    employee_id<span class="token punctuation">,</span> 
+    first_name<span class="token punctuation">,</span> 
+    last_name<span class="token punctuation">,</span> 
+    salary
+<span class="token keyword">FROM</span> employees
+<span class="token keyword">ORDER</span> <span class="token keyword">BY</span> 
+    salary <span class="token keyword">DESC</span>
+<span class="token keyword">OFFSET</span> <span class="token number">5</span> <span class="token keyword">ROWS</span>
+<span class="token keyword">FETCH</span> <span class="token keyword">NEXT</span> <span class="token number">5</span> <span class="token keyword">ROWS</span> ONLY<span class="token punctuation">;</span>
+</code><div class="toolbar"><div class="toolbar-item"><span>SQL</span></div></div></pre>
+<p>在本教程中，您已学习如何在开始返回任何行之前使用SQL <code>FETCH</code>子句跳过结果集中的<code>N</code>行。</p>
+
+					<br>
+										<p style="text-align:center;float:left;width:100%;margin-top:24px;margin-bottom:18px;">
+							<!--<button class="layui-btn layui-btn-danger" id="btn-reward"> ¥ 我要打、 </button>&nbsp;&nbsp;-->
+							<button class="layui-btn" id="article-perfect">
+								<i class="layui-icon layui-icon-edit"></i>纠错/补充
+							</button>
+							<button class="layui-btn layui-btn-normal" id="action-collection">
+								<i class="layui-icon layui-icon-rate"></i>收藏
+							</button>
+					</p>
+					
+					<div style="width:100%;margin-bottom: 16px; min-height: 180px;margin-top:18px;float:left;">
+
+						<span style="float:left;">上一篇：<a href="https://www.yiibai.com/sql/sql-limit.html#article-start" title="SQL Limit子句"><i class="layui-icon"></i>
+								SQL Limit子句</a></span>
+												<span style="float:right;">下一篇：<a href="https://www.yiibai.com/sql/sql-where.html#article-start" style="float:right;" title="下一篇：SQL Where子句"><i class="layui-icon"></i>
+								SQL Where子句</a></span>
+												<div id="googlead" style="float:left;margin-top:8px;">
+							<script async="" src="./SQL Fetch语句 - SQL教程_files/f(11).txt"></script>
+							<!-- yiibai下方 -->
+							<ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-1090193214637198" data-ad-slot="6494738921" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_1_host" style="border: none; height: 90px; width: 728px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_1" name="aswift_1" style="left:0;position:absolute;top:0;border:0;width:728px;height:90px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads(1).html" data-google-container-id="a!2" data-google-query-id="CJTVjOG6qP0CFcpaDwIdWi4Kpw" data-load-complete="true"></iframe></div></ins>
+							<script>
+								(adsbygoogle = window.adsbygoogle || []).push({});
+							</script>
+						</div>
+						
+						
+					</div>
+					
+
+					<!--// include file="qqgroup.html" //-->
+				</div>
+
+				<!--// google adv -->
+				<div style="width:100%;float:left;">
+					<script async="" src="./SQL Fetch语句 - SQL教程_files/f(11).txt"></script>
+					<ins class="adsbygoogle" style="display: block; height: 437px;" data-ad-format="autorelaxed" data-ad-client="ca-pub-1090193214637198" data-ad-slot="1254304051" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_2_host" style="border: none; height: 437px; width: 729px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_2" name="aswift_2" style="left:0;position:absolute;top:0;border:0;width:729px;height:437px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="729" height="437" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads(2).html" data-google-container-id="a!3" data-google-query-id="CL6ZlOG6qP0CFaBTDwIdtzsIvg" data-load-complete="true"></iframe></div></ins>
+					<script>
+						(adsbygoogle = window.adsbygoogle || []).push({});
+					</script>
+				</div>
+
+			</article>
+		</div>
+		<!--//end content-->
+
+		<div class="page-right">
+
+			<div class="item" style="height:260px;">
+
+				<script async="" src="./SQL Fetch语句 - SQL教程_files/f(11).txt"></script>
+				<!-- GoogleAdv-300x250 -->
+				<ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1090193214637198" data-ad-slot="9485766451" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_3_host" style="border: none; height: 250px; width: 300px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_3" name="aswift_3" style="left:0;position:absolute;top:0;border:0;width:300px;height:250px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="300" height="250" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads(3).html" data-google-container-id="a!4" data-google-query-id="COWCjeG6qP0CFYtYDwIdh3sHag" data-load-complete="true"></iframe></div></ins>
+				<script>
+					(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+
+			<div class="item" id="adv-c2" style="display:none;">
+				<!--// Adv C2 -->
+			</div>
+
+			<div class="item" style="height:610px;">
+
+				<script async="" src="./SQL Fetch语句 - SQL教程_files/f(11).txt"></script>
+				<!-- Right-300x600 -->
+				<ins class="adsbygoogle" style="display:inline-block;width:300px;height:600px" data-ad-client="ca-pub-1090193214637198" data-ad-slot="9448740452" data-adsbygoogle-status="done" data-ad-status="filled"><div id="aswift_4_host" style="border: none; height: 600px; width: 300px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_4" name="aswift_4" style="left:0;position:absolute;top:0;border:0;width:300px;height:600px;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="300" height="600" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads(4).html" data-google-container-id="a!5" data-google-query-id="CLCQjeG6qP0CFf1ZDwIdR8wC9Q" data-load-complete="true"></iframe></div></ins>
+				<script>
+					(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+						<div style="float: left;min-height:300px;border: 1px solid #eaeaea;background-color: #fff;line-height: 22px;padding: 12px 20px;">
+				<h4 style="width:100%;float:left;cursor: text;font-size: 16px;color: #666;font-weight:bold;border-bottom: 1px solid #eee;padding-bottom:8px;padding-top:10px;">随机教程</h4>
+				<div style="width:100%;float:left;">
+					<style>
+						#random-art li{
+							float:left;
+							width: 100%;
+							padding-top: 2px;
+							padding-bottom: 2px;
+							height:28px;
+							overflow: hidden;
+						}
+						#random-art li a{
+							float:left;
+							height:28px;
+							overflow: hidden;
+						}
+					</style>
+					
+					<ul id="random-art">
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-bit_lenght-function.html" target="_blank">SQL BIT_LENGTH()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-load_file-function.html" target="_blank">SQL LOAD_FILE()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-sysdate-function.html" target="_blank">SQL SYSDATE()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-drop-table.html" target="_blank">SQL删除表(DROP或DELETE Table)</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-wildcards.html" target="_blank">SQL通配符运算符</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-format-function.html" target="_blank">SQL FORMAT(X,D)函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-radians-function.html" target="_blank">SQL RADIANS()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-repeat-function.html" target="_blank">SQL REPEAT()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-right-function.html" target="_blank">SQL RIGHT()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-period_add-function.html" target="_blank">SQL PERIOD_ADD()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-floor-function.html" target="_blank">SQL FLOOR(X)函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-cos-function.html" target="_blank">SQL COS()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-check.html" target="_blank">SQL CHECK约束</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-data-types.html" target="_blank">SQL数据类型</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-null-values.html" target="_blank">SQL NULL值</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-sqrt2-function.html" target="_blank">SQL SQRT(X)函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-bit_or-functions.html" target="_blank">SQL BIT_OR()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-arithmetic-operators.html" target="_blank">SQL算术运算符</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-utc_time-function.html" target="_blank">SQL UTC_TIME()函数</a>
+						</li>
+												<li>
+							<a href="https://www.yiibai.com/sql/sql-quarter-function.html" target="_blank">SQL QUARTER()函数</a>
+						</li>
+						
+					</ul>
+
+				</div>
+			</div>
+			
+		</div>
+		<!--//end page-right -->
+
+	</section>
+
+	<style>
+
+</style>
+<footer class="footer" style="width:100%;float:left;width: 100%;margin-top: 30px;">
+	<div class="container" id="yiiba-bottom">
+		<div class="ybm-block">
+			<div class="ybm cf">
+				<dl>
+					<dt>
+						推荐/最新教程
+					</dt>
+										<dd>
+						·<a href="https://www.yiibai.com/bokeh/" title="Bokeh教程" target="_blank">Bokeh教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/t-sql/" title="T-SQL (Transact SQL) 教程" target="_blank">T-SQL (Transact SQL) 教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/es6/" title="ECMAScript/ES6教程" target="_blank">ECMAScript/ES6教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/powershell/" title="PowerShell教程" target="_blank">PowerShell教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/python_network_programming/" title="Python网络编程" target="_blank">Python网络编程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/biopython/" title="Biopython教程" target="_blank">Biopython教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/haskell/" title="Haskell教程" target="_blank">Haskell教程</a>
+					</dd>
+										<dd>
+						·<a href="https://www.yiibai.com/bash/" title="Bash Shell教程" target="_blank">Bash Shell教程</a>
+					</dd>
+					
+				</dl>
+				<dl>
+					<dt>
+						最新更新
+					</dt>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/cprogramming/simple-stopwatch-program-in-c.html" title="C语言实现秒表程序">C语言实现秒表程序</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/cprogramming/add-node-to-linked-list-in-c.html" title="C语言将节点添加到链表">C语言将节点添加到链表</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/java/what-is-the-scope-of-public-access-modifier-in-java.html" title="Java中public访问修改器的范围是什么？">Java中public访问修改器的范围是...</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/java/can-static-variables-be-called-using-classname-variablename-in-java.html" title="在Java中可以用className.variableName调用静态变量吗？">在Java中可以用className.v...</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/java/what-is-a-method-signature-in-java.html" title="Java中的方法签名是什么？">Java中的方法签名是什么？</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/java/can-static-variables-be-called-using-classname-variablename-in-java.html" title="在Java中可以用className.variableName调用静态变量吗？">在Java中可以用className.v...</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/java/what-is-the-number-wrapper-class-and-its-methods-in-java.html" title="Java中Number包装类和方法">Java中Number包装类和方法</a>
+					</dd>
+										<dd>
+						·<a target="_blank" href="https://www.yiibai.com/python/pass-function-as-parameter-python.html" title="python将函数作为参数传递">python将函数作为参数传递</a>
+					</dd>
+					
+				</dl>
+
+				<dl>
+
+					<dt>
+						站点信息
+					</dt>
+					<dd>
+						· <a target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=IBcWGRcSGBYYE2BRUQ5DT00" rel="external nofollow">意见反馈</a>
+					</dd>
+					<dd>
+						· <a target="_blank" href="https://www.yiibai.com/disclaimer.html">免责声明</a>
+					</dd>
+					<dd>
+						· <a target="_blank" href="https://www.yiibai.com/about_us.html">关于我们</a>
+					</dd>
+					<dd>
+						· <a target="_blank" href="https://www.yiibai.com/reward.html#to-qcode">关于捐助</a>
+					</dd>
+					<dd>
+						· <a target="_blank" href="https://www.yiibai.com/siteinfo/download.html" style="color:#e74851;">所有实例代码下载</a>
+					</dd>
+				</dl>
+
+				<dl>
+					<dt>
+						学习交流QQ群
+					</dt>
+					<dd>
+						JAVA技术：102112411
+					</dd>
+					<dd>
+						MySQL数据库：418407075
+					</dd>
+					<dd>
+						Python技术： 287904175
+					</dd>
+					<dd>
+						大数据开发： 655154550
+					</dd>
+					<dd>
+						Linux技术： 479429477
+					</dd>
+					<dd>
+						PHP/Web技术： 460153241
+					</dd>
+
+				</dl>
+
+				<div class="search-share">
+					<div class="app-download">
+						<div>
+							<strong>关注微信公众号</strong>
+						</div>
+					</div>
+					<div class="share">
+						<img width="150" height="150" src="./SQL Fetch语句 - SQL教程_files/qrcode.jpg">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</footer>
+
+<div id="footer-copyright" style="width: 100%;float:left;text-align: center;">
+	Copyright © 2012-2023<strong><a href="https://www.yiibai.com/" target="_blank">易百教程</a></strong>&nbsp; <strong> 
+		<a href="https://www.yiibai.com/" target="_blank">yiibai.com</a></strong> All Rights Reserved. 备案号：<a href="https://beian.miit.gov.cn/" target="_blank">琼ICP备13001417号-3</a>  联系QQ：769728683 &nbsp;&nbsp;
+
+	<script>
+		var _hmt = _hmt || [];
+		(function() {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?424e222704e2274e37a8169110e6e00a";
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(hm, s);
+		})();
+	</script>
+
+</div>
+
+<div class="fixed-btn">
+	<a class="to-top" onclick="backTop();" href="https://www.yiibai.com/sql/sql-fetch.html#backTop" title="返回顶部" style=""> <i class="fa fa-angle-up"></i></a>
+
+	<a class="qrcode" href="javascript:;" title="关注我们"><i class="fa fa-qrcode"></i></a>
+
+	<a class="writer" target="_blank" href="http://mail.qq.com/cgi-bin/qm_share?t=qm_mailme&amp;email=IBcWGRcSGBYYE2BRUQ5DT00" style="font-size: 12px;" title="问题反馈"><i class="fa fa-envelope-o" style="font-size: 20px;"></i></a>
+	<!-- qrcode modal -->
+
+	<div id="bottom-qrcode" class="modal fade in" style="display: none;">
+		<h4>微信关注</h4>
+		<div class="panel-body">
+			<img alt="微信关注" width="128" height="128" src="./SQL Fetch语句 - SQL教程_files/qrcode.jpg">
+		</div>
+	</div>
+</div>
+
+<script src="./SQL Fetch语句 - SQL教程_files/jquery.js"></script>
+<script src="./SQL Fetch语句 - SQL教程_files/prism.js"></script>
+<script src="./SQL Fetch语句 - SQL教程_files/layer.js"></script>
+<script src="./SQL Fetch语句 - SQL教程_files/main.js"></script>
+<script>
+	$("#btn-reward").on('click', function() {
+		layer.open({
+			type : 2,
+			title : "请扫描以下二维码支付打赏",
+			area : ['56%', '70%'],
+			shade : 0.4,
+			closeBtn : 1,
+			shadeClose : true,
+			content : '/static/images/reward.png'
+		});
+
+	});
+	
+	
+	</script>
+	
+
+<script>
+
+	function Strlen(str){
+		var len = 0;
+		for (var i=0; i<str.length; i++) { 
+		 var c = str.charCodeAt(i); 
+		//单字节加1 
+		 if ((c >= 0x0001 && c <= 0x007e) || (0xff60<=c && c<=0xff9f)) { 
+		   len++; 
+		 } 
+		 else { 
+		  len+=2; 
+		 } 
+		} 
+		return len;
+	}
+
+    /**/
+    function setClipboardText(event){
+        event.preventDefault();
+        var node = document.createElement('div');
+        node.appendChild(window.getSelection().getRangeAt(0).cloneContents());
+		var url = document.location.href;
+		var htmlData = node.innerHTML;
+        var textData = window.getSelection().getRangeAt(0);
+
+		if(Strlen(node.innerHTML)>120){
+			htmlData = '<div>'+ node.innerHTML
+            + '\n//更多请阅读：'+url+'\n\n<br /><br /></div>';
+
+			textData = window.getSelection().getRangeAt(0) + '\n//更多请阅读：'+url+'\n\n';
+		}
+        
+        if(event.clipboardData){
+            event.clipboardData.setData("text/html", htmlData);
+            //setData(剪贴板格式, 数据) 给剪贴板赋予指定格式的数据。返回 true 表示操作成功。
+            event.clipboardData.setData("text/plain",textData);
+        }else if(window.clipboardData){ //
+            return window.clipboardData.setData("text", textData);
+        }
+    };
+ 
+    document.addEventListener('copy',function(e){
+        setClipboardText(e);
+    });
+
+	$("#article-perfect").click(function(){
+		var aid = $('#article_id').val();
+		layer.open({
+			title : '修改表单项',
+			type : 2,
+			area : ['80%', '620px'],
+			fixed : true, // 不固定
+			maxmin : true,
+			skin : 'layui-layer-rim',
+			content : '/article/perfect/'+aid
+		});
+	})
+</script>
+<script src="./SQL Fetch语句 - SQL教程_files/article-directory.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	// /*文章生成导航目录*/
+	BlogDirectory.showDirectorySideBar("article-content","h2","h4",20);
+});
+</script>
+
+
+<ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;" data-ad-status="unfilled"><div id="aswift_5_host" style="border: none; height: 0px; width: 0px; margin: 0px; padding: 0px; position: relative; visibility: visible; background-color: transparent; display: inline-block;" tabindex="0" title="Advertisement" aria-label="Advertisement"><iframe id="aswift_5" name="aswift_5" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/ads(5).html" data-google-container-id="a!6" data-load-complete="true"></iframe></div></ins><div class="sideBar" id="sideBar"><div id="sideBarTab"><h2>目录导航</h2></div><div id="sideBarContents" style="display: none;"><dl><dd name="0">1. SQL FETCH子句简介</dd><dd name="1">2. SQL FETCH示例</dd></dl></div></div><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" data-anchor-status="displayed" style="display: block; width: 100% !important; height: 95px !important; bottom: 0px; clear: none !important; float: none !important; left: 0px; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1; overflow: visible !important; padding: 0px !important; position: fixed; right: auto !important; top: auto !important; vertical-align: baseline !important; visibility: visible !important; z-index: 2147483647; background: rgb(250, 250, 250) !important;" data-ad-status="filled" data-anchor-shown="true"><div class="grippy-host"></div><div id="aswift_7_host" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none !important; height: 90px !important; width: 100% !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: inline-block !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><iframe id="aswift_7" name="aswift_7" style="width: 728px !important; height: 90px !important; display: block; margin: 0px auto;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="728" height="90" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/zrt_lookup.html" data-google-container-id="a!8" data-google-query-id="COHxjeG6qP0CFRxIDwIdHDQFAg" data-load-complete="true"></iframe></div></ins><iframe src="./SQL Fetch语句 - SQL教程_files/aframe.html" width="0" height="0" style="display: none;"></iframe></body><iframe id="google_esf" name="google_esf" src="./SQL Fetch语句 - SQL教程_files/zrt_lookup(1).html" style="display: none;"></iframe><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important; width: 100vw !important; height: 100vh !important; inset: 0px auto auto 0px !important; clear: none !important; float: none !important; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; padding: 0px !important; position: fixed !important; vertical-align: baseline !important; visibility: visible !important; z-index: 2147483647 !important; background: transparent !important;" aria-hidden="true" data-ad-status="filled" data-vignette-loaded="true"><div id="aswift_6_host" tabindex="0" title="Advertisement" aria-label="Advertisement" style="border: none !important; height: 100vh !important; width: 100vw !important; margin: 0px !important; padding: 0px !important; position: relative !important; visibility: visible !important; background-color: transparent !important; display: inline-block !important; inset: auto !important; clear: none !important; float: none !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; vertical-align: baseline !important; z-index: auto !important;"><iframe id="aswift_6" name="aswift_6" style="width: 100vw !important; height: 100vh !important; inset: 0px auto auto 0px !important; position: absolute !important; clear: none !important; display: inline !important; float: none !important; margin: 0px !important; max-height: none !important; max-width: none !important; opacity: 1 !important; overflow: visible !important; padding: 0px !important; vertical-align: baseline !important; visibility: visible !important; z-index: auto !important;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" width="" height="" frameborder="0" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" src="./SQL Fetch语句 - SQL教程_files/zrt_lookup(2).html" data-google-container-id="a!7" data-google-query-id="CODxjeG6qP0CFRxIDwIdHDQFAg" data-load-complete="true"></iframe></div></ins></html>

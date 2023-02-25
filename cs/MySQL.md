@@ -1010,7 +1010,9 @@ SELECT
 ) as 部门名
 ```
 
+#### OFFSET FETCH
 
+[offset fetch](../src/sql/SQL%20Fetch%E8%AF%AD%E5%8F%A5%20-%20SQL%E6%95%99%E7%A8%8B.html)
 
 ****
 
@@ -1021,6 +1023,14 @@ SELECT
 ### DML(Data Manipulate Language)
 
 ### DDL(Data Definite Language)
+
+db2直接建表
+
+```sql
+create table IIFS_GOVERNMENT_AFFAIRS_TAX.PFE_DETAIL_2020 as (select * from IIFS_GOVERNMENT_AFFAIRS_TAX.PFE_DETAIL) definition only 
+```
+
+
 
 ### 三范式
 

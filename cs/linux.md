@@ -1404,6 +1404,10 @@ acs@9e0ebfcd82d7:~$ ./test2.sh
 My name is: zyc
 ```
 
+------
+
+在windows 环境下编写sh脚本然后上传到linux执行时报DB21005E：使用`cat -A xxx.sh`查看能看到在每一行的末尾都有一个^M\$，在linux环境中回车符号时 $，执行命令`dos2unix xxx.sh`
+
 ## 第三章 SSH
 
 ### 3.1 ssh登陆

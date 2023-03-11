@@ -563,6 +563,16 @@ optionalStudent.orElseGet(new Supplier<Student>() {
 //可改写lambda->optionalStudent.orElseGet(this::createStudent);
 ```
 
+-------
+
+#### 定时调度Timer&ScheduledExecutorService
+
+1. Timer讲解：[Timer](../src/java/Java定时调度机制 - Timer - 简书.html)
+
+可关注`schedule()`方法与`scheduleAtFixedRate()`的区别
+
+2. ScheduledExecutorService：[ScheduledExecutorService](../src/java/Java定时调度机制 - ScheduledExecutorService - 简书.html)
+
 
 
 ----

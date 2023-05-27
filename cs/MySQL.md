@@ -1108,7 +1108,7 @@ create table IIFS_GOVERNMENT_AFFAIRS_TAX.PFE_DETAIL_2020 as (select * from IIFS_
 3. 导入数据
 
    `db2 'load from /home/data/cust_pool.del of del insert into ecrm.cust_pool_bak nonrecoverable'`
-   `db2 'import from /home/data/cust_ pool.del of del insert into ecrm.cust_ pool_bak '`
+   `db2 'import from /home/data/cust_ pool.del of del commitcount 30000 insert into ecrm.cust_ pool_bak '`
 
 生成数据的脚本
 

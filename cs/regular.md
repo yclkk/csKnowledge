@@ -202,3 +202,23 @@ url(r'^profile/(?P<username>\w+)/$', view_func)
 
 使用 “反斜扛 + 编号”，即 `\number `的方式来进行引用，而 JavaScript 中是通过$编号来引用，如\$1
 
+<img src="../src/regular/first_third_partQuote.webp" style="zoom:90%;">
+
+----
+
+#### 分组引用在查找中使用
+
+`(\W+)`会匹配所有的单词，所有的单词的分组编号都是1。
+
+`(\W+) \1`：当`(\W+)`为cat时，`\1`也应该为cat，即`cat cat`才能被匹配上
+
+<img src="../src/regular/first_third_partQuoteInstance.webp" style="zoom:50%;">
+
+----
+
+#### 分组查找替换中的使用
+
+和查找类似，我们可以使用反向引用，在得到的结果中，去拼出来我们想要的结果。还是使用刚刚日期时间的例子，我们可以很方便地将它替换成， 2020 年 05 月 10 日这样的格式。
+
+<img src="../src/regular/first_third_partSupersedeInstance.webp" style="zoom:50%;">
+

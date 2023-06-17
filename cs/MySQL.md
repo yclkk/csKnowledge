@@ -576,6 +576,9 @@ select str_to_date('9-10 2010', '%c-%d %y') # 同样输出2010-09-10
 
 4. # date_format 将日期转换成字符
 SELECT DATE_FORMAT(NOW(),'%y年%m月%d日') # 输出22年07月23日
+SELECT DATE_FORMAT(DATE_SUB(NOW(),INTERVAL 1 DAY),'%Y-%m-%d');
+SELECT DATE_FORMAT(DATE_ADD(NOW(),INTERVAL 1 DAY),'%Y-%m-%d');
+
 # 查询有奖金的员工名和日职日期（xx月/xx日 xx年）
 select last_name, date_format(hiredate, '%m月/%d日 %y年') from employees 
 where commission_pct is not null

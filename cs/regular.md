@@ -222,3 +222,164 @@ url(r'^profile/(?P<username>\w+)/$', view_func)
 
 <img src="../src/regular/first_third_partSupersedeInstance.webp" style="zoom:50%;">
 
+----
+
+#### Sublime Text简介
+
+文本编辑器`Sublime Text`，查找”或“替换”功能，在菜单 Find 中可以找到
+
+<img src="../src/regular/first_third_SublimeBrief.webp" style="zoom:40%;">
+
+<img src="../src/regular/first_third_SublimeReplace.webp" style="zoom:40%;">
+
+Find All的使用：点击Find All之后可以剪切处空白处粘贴
+
+>  我们可以使用正则进行资源链接提取，比如从一个图片网站的源代码中查找到图片链接，然后再使用下载工具批量下载这些图片
+
+##### 正则替换
+
+<img src="../src/regular/first_third_SublimeReplaceText.webp" style="zoom:40%;">
+
+替换重复的单词
+
+<img src="../src/regular/first_third_SublimeReplaceRepeat.png" style="zoom:55%;">
+
+----
+
+### 1.4 匹配模式
+
+匹配模式，指的是正则中一些改变元字符匹配行为的方式，比如匹配时不区分英文字母大小写。常见的匹配模式有 4 种，分别是**不区分大小写模式、点号通配模式、多行模式和注释模式**。
+
+这里的“模式”对应的是英文中的 mode，而不是 pattern。有些地方会把正则表达式 pattern 也翻译成模式
+
+----
+
+#### 不区分大小写模式（Case-Insensitive）
+
+在进行文本匹配时，我们要关心单词本身的意义。比如要查找单词 cat，我们并不需要关心单词是 CAT、Cat，还是 cat。根据之前我们学到的知识，你可能会把正则写成这样：`[Cc][Aa][Tt]`，这样写虽然可以达到目的，但不够直观，如果单词比较长，写起来容易出错，阅读起来也比较困难
+
+<img src="../src/regular/first_forth_caseIntensitive.webp" style="zoom:50%;">
+
+不区分大小写是匹配模式的一种。当我们把模式修饰符放在整个正则前面时，就表示整个正则表达式都是不区分大小写的。模式修饰符是通过 ==(? 模式标识)== 的方式来表示的。 我们只需要把模式修饰符放在对应的正则前，就可以使用指定的模式了。在不区分大小写模式中，由于**不分大小写的英文是 Case-Insensitive，那么对应的模式标识就是 I 的小写字母 i**，所以不区分大小写的 cat 就可以写成 (?i)cat
+
+<img src="../src/regular/first_forth_caseIntensitiveInstance.webp" style="zoom:50%;">
+
+如果想要前面匹配上的结果，和第二次重复时的大小写一致，只需要用括号把修饰符和正则 cat 部分括起来，加括号相当于作用范围的限定，让不区分大小写只作用于这个括号里的内容
+
+<img src="../src/regular/first_forth_caseIntensitiveInstance_1.webp" style="zoom:50%;">
+
+例子：the cat其中the匹配大小写，cat不匹配大小写
+
+<img src="../src/regular/first_forth_caseIntensitiveInstance_2.webp" style="zoom:50%;">
+
+**注意：**，通过修饰符指定匹配模式的方式，在大部分编程语言中都是可以直接使用的，但在 JS 中我们需要使用 `/regex/i` 来指定匹配模式。在编程语言中通常会提供一些预定义的常量，来进行匹配模式的指定。比如 Python 中可以使用 `re.IGNORECASE 或 re.I` ，来传入正则函数中来表示不区分大小写
+
+```python
+>>> import re
+>>> re.findall(r"cat", "CAT Cat cat", re.IGNORECASE)
+['CAT', 'Cat', 'cat']
+```
+
+-----
+
+#### 点号通配模式（Dot All）
+
+.可以匹配上任何符号，但不能匹配换行。当需要匹配真正的“任意”符号的时候，可以使用 [\s\S] 或 [\d\D] 或 [\w\W] 等
+
+但是这么写不够简洁自然，所以正则中提供了一种模式，让英文的点（.）可以匹配上包括换行的任何字符。
+
+这个模式就是点号通配模式，有很多地方把它称作单行匹配模式，但这么说容易造成误解，毕竟它与多行匹配模式没有联系
+
+单行的英文表示是 Single Line，单行模式对应的修饰符是 (?s)
+
+<img src="../src/regular/first_forth_DotInstance.webp" style="zoom:50%;">
+
+**注意：**JavaScript 不支持此模式，那么我们就可以使用前面说的[\s\S]等方式替代。在 Ruby 中则是用 Multiline
+
+------
+
+#### 多行匹配模式（Multiline）
+
+> 通常情况下，^匹配整个字符串的开头，\$ 匹配整个字符串的结尾。多行匹配模式改变的就是 ^ 和 $ 的匹配行为	
+
+Ps：这段需要考量，在regex101上获得的效果更多行匹配模式是，但是匹配的步数不一样
+
+<img src="../src/regular/first_forth_MultilineInstance_1.webp" style="zoom:50%;">
+
+多行模式的作用在于，使 ^ 和 $ 能匹配上每行的开头或结尾，我们可以使用模式修饰符号 (?m) 来指定这个模式
+
+<img src="../src/regular/first_forth_MultilineInstance_2.webp" style="zoom:50%;">
+
+**作用：**在处理日志时，如果日志以时间开头，有一些日志打印了堆栈信息，占用了多行，我们就可以使用多行匹配模式，在日志中匹配到以时间开头的每一行日志
+
+> 正则中还有 \A 和 \z（Python 中是 \Z） 这两个元字符容易混淆，\A 仅匹配整个字符串的开始，\z 仅匹配整个字符串的结束，在多行匹配模式下，它们的匹配行为不会改变，如果只想匹配整个字符串，而不是匹配每一行，用这个更严谨一些
+
+-----
+
+#### 注释模式（Comment）
+
+> 作用：就是写注释，使用 (?#comment) 来表示
+
+```
+(\w+)(?#word) \1(?#word repeat again)
+```
+
+python3中使用x模式，在 x 模式下，所有的换行和空格都会被忽略。为了换行和空格的正确使用，可以通过把**空格放入字符组中**，或将空格转义来解决换行和空格的忽略问题
+
+```python
+
+regex = r'''(?mx)
+^          # 开头
+(\d{4})    # 年
+[ ]        # 空格 放进了字符数组里
+(\d{2})    # 月
+$          # 结尾
+'''
+
+re.findall(regex, '2020 06\n2020 07')
+# 输出结果 [('2020', '06'), ('2020', '07')]
+```
+
+---
+
+#### 作业
+
+HTML 标签是不区分大小写的，比如我们要提取网页中的 head 标签中的内容，用正则如何实现？
+
+<img src="../src/regular/first_forth_exercise.png" style="zoom:60%;">
+
+-------
+
+## 二、
+
+### 2.1 断言
+
+断言：断言是指对匹配到的文本位置有要求。
+
+比如：\d{11} 能匹配上 11 位数字，但这 11 位数字可能是 18 位身份证号中的一部分。再比如，去查找一个单词，我们要查找 tom，但其它的单词，比如 tomorrow 中也包含了 tom
+
+换而言之就是对匹配的文本的位置有一定要求。
+
+在正则中提供了一些结构，只用与匹配文本位置，而不是文本本身内容，这种结构就是**断言**
+
+<img src="../src/regular/second-second-AssertNotion.webp" style="zoom:60%;">
+
+----
+
+#### 单词边界（Word Boundary）
+
+用目前所学知识来替换一下文本，得出来的答案中，**tomorrow也被替换了**
+
+```python
+替换前：tom asked me if I would go fishing with him tomorrow.
+替换后：jerry asked me if I would go fishing with him jerryorrow.
+```
+
+单词的组成一般可以用元字符 \w+ 来表示，\w 包括了大小写字母、下划线和数字（即 [A-Za-z0-9_]）。那如果我们能找出单词的边界，也就是当出现了\w 表示的范围以外的字符，比如引号、空格、标点、换行等这些符号，我们就可以在正则中使用\b 来表示单词的边界。 \b 中的 b 可以理解为是边界（Boundary）这个单词的首字母
+
+<img src="../src/regular/second-second-Boundary.webp" style="zoom:50%;">
+
+----
+
+#### 行的开始或结束
+

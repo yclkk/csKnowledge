@@ -464,3 +464,107 @@ True    <-- 能匹配上 (只能是6位数字)
 
 > ==环视中虽然也有括号，但不会保存成子组==。保存成子组的一般是匹配到的文本内容，后续用于替换等操作，而环视是表示对文本左右环境的要求，即环视只匹配位置，不匹配文本内容
 
+-----
+
+### 2.2 转义
+
+转义字符（Escape Character）：在计算机科学与远程通信中，当转义字符放在字符序列中，它将对它后续的几个字符进行替代并解释。通常，判定某字符是否为转义字符由上下文确定。转义字符即标志着转义序列开始的那个字符
+
+转义序列通常有两种功能。第一种功能是编码无法用字母表直接表示的特殊数据。第二种功能是用于表示无法直接键盘录入的字符（如回车符）
+
+转义字符自身和后面的字符看成一个整体，用来表示某种含义。最常见的例子是，C 语言中用反斜线字符“\”作为转义字符，来表示那些不可打印的 ASCII 控制符。
+
+比如：shell 中删除文件，如果文件名中有 * 号，我们就需要转义，此时我们能看出，使用了转义字符后，* 号就能放进文件名里了
+
+```shell
+rm access_log* # 删除当前目录下 access_log 开头的文件
+rm access_log\* # 删除当前目录下名字叫 access_log* 的文件
+```
+
+双引号中又出现了双引号，这时候也需要转义了
+
+```SHELL
+print "tom said \"Hello World!\" to the crowd."
+```
+
+常见的转义字符
+
+<img src="../src/regular/second-second-escapeCharacter.webp" style="zoom:50%;">
+
+---
+
+#### 字符串转义和正则转义
+
+> 正则中也是使用反斜杠进行转义的
+
+一般来说，正则中 \d 代表的是单个数字，但如果我们想表示成 反斜杠和字母 d，这时候就需要进行转义，写成 \\d，这个就表示反斜杠后面紧跟着一个字母 d
+
+<img src="../src/regular/second-second-escapeCharacterForRegular.webp" style="zoom:50%;">
+
+上述的反斜杠和 d 是连续出现的两个字符，如果你想表示成反斜杠或 d，可以用管道符号或中括号来实现，比如 \|d 或 [\d]。
+
+<img src="../src/regular/second-second-escapeCharacterForRegular-2.webp" style="zoom:50%;">
+
+案例：python3
+
+```python
+
+>>> import re
+>>> re.findall('\\|d', 'a*b+c?\d123d\')  # 字符串没转义"反斜杠"
+  File "<input>", line 1
+      re.findall('\\|d', 'a*b+c?\d123d\')
+                                       ^
+SyntaxError: EOL while scanning string literal
+
+>>> re.findall('\\|d', 'a*b+c?\\d123d\\')
+[]
+```
+
+在这里用正则写法在python3中会报错
+
+```python
+>>> import re
+>>> re.findall('\\', 'a*b+c?\\d123d\\')
+Traceback (most recent call last):
+ 省去部分信息
+re.error: bad escape (end of pattern) at position 0
+```
+
+在python中，\会被认为是转义字符，因此`\\`表达的是单斜杠\
+
+正确的写法是：`\\\\`
+
+```python
+>>> import re
+>>> re.findall('\\\\', 'a*b+c?\\d123d\\')
+['\\', '\\']
+```
+
+在python中，正则部分和文本部分都需要转义
+
+```python
+re.findall('\\\\', 'a*b+c?\\d123d\\') => '\\', 'a*b+c?\d123d\'
+```
+
+<img src="../src/regular/second-second-escapeCharacterForRegular-3.webp" style="zoom:50%;">
+
+但是有更简单的方法：使用的python原生字符串小写r
+
+```python
+>>> import re
+>>> re.findall(r'\\', 'a*b+c?\\d123d\\')
+['\\', '\\']
+```
+
+----
+
+#### 正则中元字符转义
+
+如果现在我们要查找比如星号（*）、加号（+）、问号（?）本身，而不是元字符的功能，这时候就需要对其进行转义，直接在前面加上反斜杠就可以了
+
+```python
+>>> import re
+>>> re.findall('\+', '+')
+['+']
+```
+

@@ -667,7 +667,76 @@ Unicode 标准也在不断发展和完善。目前，使用 4 个字节的编码
 
 Unicode 相当于规定了字符对应的码值，这个码值得编码成字节的形式去传输和存储
 
+UTF-8 之所以能够流行起来，是因为其编码比较巧妙，采用的是变长的方法。也就是一个 Unicode 字符，在使用 UTF-8 编码表示时占用 1 到 4 个字节不等。最重要的是 Unicode 兼容 ASCII 编码，在表示纯英文时，并不会占用更多存储空间。而汉字呢，在 UTF-8 中，通常是用三个字节来表示。
+
 ---
 
 #### Unicode中的正则
 
+**编码问题的坑**
+
+如果你需要在 Python 语言中使用正则，我建议你使用 Python3。如果你不得不使用 Python2，一定要记得使用 Unicode 编码。在 Python2 中，一般是以 u 开头来表示 Unicode。如果不加 u，会导致匹配出现问题。例子如下
+
+```python
+# 测试环境 macOS/Linux/Windows， Python2.7
+>>> import re
+>>> re.search(r'[时间]', '极客') is not None
+True
+>>> re.findall(r'[时间]', '极客')
+['\xe6']
+# Windows下输出是 ['\xbc']
+```
+
+不使用 Unicode 编码时，正则会被编译成其它编码表示形式。比如，在 `macOS` 或 Linux 下，一般会编码成 `UTF-8`，而在 `Windows` 下一般会编码成 `GBK`
+
+以下是在`macOS` 上做的测试，“时间”这两个汉字表示成了 `UTF-8` 编码，正则不知道要每三个字节看成一组，而是把它们当成了 6 个单字符
+
+```python
+# 测试环境 macOS/Linux，Python 2.7
+>>> import re
+>>> re.compile(r'[时间]', re.DEBUG)
+in
+  literal 230
+  literal 151
+  literal 182
+  literal 233
+  literal 151
+  literal 180
+<_sre.SRE_Pattern object at 0x1053e09f0>
+>>> re.compile(ur'[时间]', re.DEBUG)
+in
+  literal 26102
+  literal 38388
+<_sre.SRE_Pattern object at 0x1053f8710>
+```
+
+“极客” 和 “时间” 这两个词语对应的 UTF-8 编码。你可以发现，这两个词语都含有 16 进制表示的 e6，而 GBK 编码时都含有 16 进制的 bc，所以才会出现前面的表现。
+
+```python
+# UTF-8
+>>> u'极客'.encode('utf-8')
+'\xe6\x9e\x81\xe5\xae\xa2'  # 含有 e6
+>>> u'时间'.encode('utf-8')
+'\xe6\x97\xb6\xe9\x97\xb4'  # 含有 e6
+
+# GBK
+>>> u'极客'.encode('gbk')
+'\xbc\xab\xbf\xcd'  # 含有 bc
+>>> u'时间'.encode('gbk')
+'\xca\xb1\xbc\xe4'  # 含有 bc
+```
+
+因此在使用时，一定要指定 Unicode 编码，这样就可以正常工作了。
+
+```python
+# Python2 或 Python3 都可以
+>>> import re
+>>> re.search(ur'[时间]', u'极客') is not None
+False
+>>> re.findall(ur'[时间]', u'极客')
+[]
+```
+
+----
+
+#### 点号匹配

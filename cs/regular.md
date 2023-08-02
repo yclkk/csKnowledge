@@ -740,3 +740,42 @@ False
 ----
 
 #### 点号匹配
+
+---
+
+#### 字符组匹配
+
+很多字符组，比如\d 表示数字，\w 表示大小写字母、下划线、数字，\s 表示空白符号等，那 Unicode 下的数字，比如全角的 1、2、３等，算不算数字呢？全角的空格算不算空白呢？
+
+---
+
+#### Unicode属性
+
+在正则中使用 Unicode，还可能会用到 Unicode 的一些属性。这些属性把 Unicode 字符集划分成不同的字符小集合。
+
+在正则中常用的有三种，分别是按功能划分的 Unicode Categories（有的也叫 Unicode Property），比如标点符号，数字符号；按连续区间划分的 Unicode Blocks，比如只是中日韩字符；按书写系统划分的 Unicode Scripts，比如汉语中文字符。
+
+<img src="../src/regular/second-forth-unicodeProperty.webp" style="zoom:50%;">
+
+这三种属性在正则中的表示方式都是 ==\p{属性}==
+
+<img src="../src/regular/second-forth-unicodePropertyExample.webp" style="zoom:50%;">
+
+其中，Unicode Blocks 在不同的语言中记法有差异，比如 Java 需要加上 In 前缀，类似于 `\p{InBopomofo}` 表示注音字符。
+
+----
+
+#### 表情符号
+
+表情符号其实是“图片字符”。在 2020 年 3 月 10 日公布的 Unicode 标准 13.0.0 中，新增了 55 个新的 emoji 表情，完整的表情列表可以在这里查看[UnicodeEmoji](http://www.unicode.org/emoji/charts/full-emoji-list.html)
+
+这些表情的特点有：
+
+1. 许多表情不在 `BMP` 内，码值超过了 `FFFF`。使用 `UTF-8` 编码时，普通的 `ASCII` 是 1 个字节，中文是 3 个字节，而有一些表情需要 4 个字节来编码。
+
+2. 这些表情分散在 BMP 和各个补充平面中，要想用一个正则来表示所有的表情符号非常麻烦，即便使用编程语言处理也同样很麻烦。
+3. 一些表情现在支持使用颜色修饰（Fitzpatrick modifiers），可以在 5 种色调之间进行选择。这样一个表情其实就是 8 个字节了。
+
+面是使用 IPython 测试颜色最深的点赞表情，在 macOS 上的测试结果。你可以发现，它是由 8 个字节组成，这样用正则处理起来就很不方便了。因此，在处理表情符号时，我不建议你使用正则来处理。你可以使用专门的库，这样做一方面代码可读性更好，另一方面是表情在不断增加，使用正则的话不好维护，会给其它同学留坑。而使用专门的库可以通过升级版本来解决这个问题。
+
+<img src="../src/regular/second-forth-unicodeEmoji.webp" style="zoom:100%;">

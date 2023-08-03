@@ -779,3 +779,57 @@ False
 面是使用 IPython 测试颜色最深的点赞表情，在 macOS 上的测试结果。你可以发现，它是由 8 个字节组成，这样用正则处理起来就很不方便了。因此，在处理表情符号时，我不建议你使用正则来处理。你可以使用专门的库，这样做一方面代码可读性更好，另一方面是表情在不断增加，使用正则的话不好维护，会给其它同学留坑。而使用专门的库可以通过升级版本来解决这个问题。
 
 <img src="../src/regular/second-forth-unicodeEmoji.webp" style="zoom:100%;">
+
+------
+
+### 2.5 如何在编辑器中使用正则完成工作
+
+#### 编辑器功能
+
+以 Sublime Text 3 为例，这些功能在 Sublime Text、Atom、VS Code、JetBrains 系列（IntelliJ IDEA/PyCharm/Goland 等) 中都是支持的。
+
+---
+
+#### 光标移动和文本选择
+
+在常见的编辑器、IDE、甚至 Chrome 等浏览器中，我们编辑文本时，使用键盘的左右箭头移动光标，可以按住 Shift 键来选中文本。在左右移动时，如果你按住 Alt（macOS 的 option），你会发现光标可以“按块移动”，快速移动到下一个单词。两种方式组合起来，你可以快速选择引号里面的内容。
+
+---
+
+#### 多焦点编辑
+
+在 IDE 中，我们如果想对某个变量或函数重命名，通常可以使用重构（`refactor`）功能。但如果**处理的不是代码，而是普通文本，比如 JSON 字符串**的时候，就没法这么用了。不过现在很多编辑器都提供了多焦点编辑的功能
+
+比如选择单词 route 之后，点击菜单 Find -> Quick Find All 就可以选中所有的 route 了。你可以进行多焦点编辑，非常方便
+
+<img src="../src/regular/second-fifth-editorForQuick.webp" style="zoom:40%;">
+
+这个特性结合光标移动，可以快速提取某些内容，比如提取 JSON 中的姓名和手机号。选中所有的字段和值之间的字符（": "） 之后，按住 Shift+Alt（macOS 上是 Shift + Option），用箭头移动光标，可以快速选择到另外一个引号前，然后剪切，再找个空白地方粘贴就可以了。
+
+```json
+{
+  "error_code": 0,
+  "result": {
+    "data": [
+      {
+        "name": "朱小明",
+        "tel": "138xx138000"
+      },
+      {
+        "name": "王五",
+        "tel": "139xx139000"
+      }
+    ]
+  }
+}
+```
+
+<img src="../src/regular/second-fifth-editorForQuickExample.webp" style="zoom:60%;">
+
+------
+
+#### 竖向编辑
+
+在编辑多行时，如果我们需要编辑的内容都是纵向上同一个位置，就可以使用 Alt (macOS 上是 Option）加上鼠标拖拽的方式来选择（或者尝试按下鼠标中键拖拽）。比如下图，当你选择了左侧的两个空格之后，可以批量编辑，比如修改成四个空格。将竖向编辑和刚刚上面说到的光标移动结合起来，会非常方便。
+
+<img src="../src/regular/second-fifth-verticalEdit.webp" style="zoom:60%;">

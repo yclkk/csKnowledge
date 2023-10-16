@@ -833,3 +833,108 @@ False
 在编辑多行时，如果我们需要编辑的内容都是纵向上同一个位置，就可以使用 Alt (macOS 上是 Option）加上鼠标拖拽的方式来选择（或者尝试按下鼠标中键拖拽）。比如下图，当你选择了左侧的两个空格之后，可以批量编辑，比如修改成四个空格。将竖向编辑和刚刚上面说到的光标移动结合起来，会非常方便。
 
 <img src="../src/regular/second-fifth-verticalEdit.webp" style="zoom:60%;">
+
+---
+
+#### 在编辑器中使用正则
+
+正则是一种文本处理工具，常见的功能有文本验证、文本提取、文本替换、文本切割等。
+
+有一些地方说的正则匹配，其实是包括了校验和提取两个功能。校验常用于验证整个文本的组成是不是符合规则，比如密码规则校验。提取则是从大段的文本中抽取出需要的内容，比如提取网页上所有的链接。在使用正则进行内容提取时，要做到不能提取到错误的内容（准确性），不能漏掉正确的内容（完备性）。这就要求我们写正则的时候尽量考虑周全。但是考虑周全并不容易，需要我们不断地练习、思考和总结。
+
+---
+
+#### 内容提取
+
+<img src="../src/regular/second-fifth-editor.webp" style="zoom:40%;">
+
+我们来尝试使用 sublime 提取文本中所有的邮箱地址，这里并不要求你写出一个完美的正则，因此演示时，使用\S+@\S+\.\S+ 这个正则。另外我们可以加上环视，去掉尾部的分号。你可以在这里随机生成一些邮箱用于测试。
+
+<img src="../src/regular/second-fifth-contentExtract.webp" style="zoom:40%;">
+
+--------
+
+#### 内容替换
+
+同样是上面邮箱的例子，我们可以使用子组和引用，直接替换得到移除了分号之后的邮箱，我们还可以在邮箱前把邮箱类型加上。操作前和操作后的示意图如下：
+
+<img src="../src/regular/second-fifth-contentReplace_1.webp" style="zoom:40%;">
+
+
+
+----
+
+### 2.6 如何在语言中用正则让文本处理能力上一个台阶？
+
+#### 校验文本内容
+
+我们先来看一下数据验证，通常我们在网页上输入的手机号、邮箱、日期等，都需要校验。校验的特点在于，整个文本的内容要符合正则，比如要求输入 6 位数字的时候，输入 123456abc 就是不符合要求的。下面我们以验证日期格式年月日为例子来讲解，比如 2020-01-01，我们使用正则\d{4}-\d{2}-\d{2} 来验证。
+
+##### python
+
+在 Python 中，正则的包名是 re，验证文本可以使用 re.match 或 re.search 的方法，这两个方法的区别在于，re.match 是从开头匹配的，re.search 是从文本中找子串。下面是详细的解释：
+
+```python
+# 测试环境 Python3
+>>> import re
+>>> re.match(r'\d{4}-\d{2}-\d{2}', '2020-06-01')
+<re.Match object; span=(0, 10), match='2020-06-01'>
+# 这个输出是匹配到了，范围是从下标0到下标10，匹配结果是2020-06-01
+# re.search 输出结果也是类似的
+```
+
+**在 Python 中，校验文本是否匹配的正确方式如下所示：**
+
+```python
+# 测试环境 Python3
+>>> import re
+>>> reg = re.compile(r'\A\d{4}-\d{2}-\d{2}\Z')  # 建议先编译，提高效率
+>>> reg.search('2020-06-01') is not None
+True
+>>> reg.match('2020-06-01') is not None  # 使用match时\A可省略
+True
+```
+
+如果不添加 \A 和 \Z 的话，我们就可能得到错误的结果。而造成这个错误的主要原因就是，没有完全匹配，而是部分匹配。至于为什么不推荐用^和$，因为在多行模式下，它们的匹配行为会发现变化，
+
+```python
+# 错误示范
+>>> re.match(r'\d{4}-\d{2}-\d{2}', '2020-06-01abc') is not None
+True
+>>> re.search(r'\d{4}-\d{2}-\d{2}', 'abc2020-06-01') is not None
+True
+```
+
+##### Java
+
+在 Java 中，正则相关的类在 java.util.regex 中，其中最常用的是 Pattern 和 Matcher， Pattern 是正则表达式对象，Matcher 是匹配到的结果对象，Pattern 和 字符串对象关联，可以得到一个 Matcher。
+
+```java
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+class Main {
+  public static void main(String[] args) {
+    //方法1，可以不加 \A 和 \z
+    System.out.println(Pattern.matches("\\d{4}-\\d{2}-\\d{2}", "2020-06-01")); // true
+
+    //方法2，可以不加 \A 和 \z
+    System.out.println("2020-06-01".matches("\\d{4}-\\d{2}-\\d{2}")); // true
+    
+    //方法3，必须加上 \A 和 \z
+    Pattern pattern = Pattern.compile("\\A\\d{4}-\\d{2}-\\d{2}\\z");
+    System.out.println(pattern.matcher("2020-06-01").find()); // true
+  }
+}
+```
+
+---
+
+部分常见编程语言校验文本方式
+
+<img src="../src/regular/second-sixth-languageCheck.webp" style="zoom:40%;">
+
+---
+
+#### 提取文本内容
+
